@@ -1,0 +1,187 @@
+body {
+  font-family: "Poppins", sans-serif;
+  background: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+  background: #a64ef5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 40px;
+  color: white;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.search {
+  width: 40%;
+  padding: 8px 12px;
+  border-radius: 20px;
+  border: none;
+}
+
+.nav-right button {
+  margin-left: 10px;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-btn {
+  background: white;
+  color: #a64ef5;
+}
+
+.signin {
+  background: white;
+  color: #a64ef5;
+}
+
+.signup {
+  background: #6f2bd2;
+  color: white;
+}
+
+.add-btn{
+  height: 40px;
+  width: 10%;
+  background: #a64ef5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;  
+ position: absolute;  
+ margin-top: 20px;
+ right: 16px;
+ margin-right: 10%;
+}
+/* ---------- Slider ---------- */
+.slider {
+  width: 100%;
+  overflow: hidden;
+  background: #f8f2ff;
+  padding: 40px 0;
+  display: flex;
+  justify-content: center;
+  margin-top: 70px;
+
+}
+
+.slider-track {
+  display: flex;
+  gap: 40px; /* ระยะห่างระหว่างสไลด์ */
+  transition: transform 1s ease-in-out; /* ทำให้เลื่อนนุ่ม */
+}
+
+.slide {
+  background: #f0e4ff;
+  border-radius: 12px;
+  padding: 16px;
+  width: 300px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.slide img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.slide-text h3 {
+  margin: 10px 0 4px;
+}
+
+.slide-text button {
+  background: #a64ef5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+
+
+/* ---------- Category ---------- */
+.category-section {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.category-box {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 20px;
+}
+
+.cat-item {
+  background: #f8f2ff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 180px;
+  transition: transform 0.2s ease;
+}
+
+.cat-item:hover {
+  transform: scale(1.05);
+}
+
+/* ---------- Best Seller ---------- */
+.bestseller-section {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.product-grid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.product-card {
+  width: 200px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+.product-card img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.tag {
+  background: #a64ef5;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.price {
+  color: green;
+  font-weight: 600;
+}

@@ -1,0 +1,156 @@
+/* itemPublished.css */
+
+
+/* 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #8a2be2;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+} */
+
+body{
+  background-color: #ffff;
+}
+.bar{
+height: 120px; 
+width: 100%;
+margin-top: -10px;
+background: #8B0ACB;
+margin-bottom: 20px;
+display: flex;
+}
+
+.search{
+  margin-top: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-self:center;
+  width: 65%;
+  height: 50px;
+  background-color: #ffff;
+  font-size:30px ;
+  border-radius: 18px;
+  border: #ffff;
+  padding: 10px;
+  margin-left: 15%;
+
+}
+
+
+
+
+.success-section {
+  text-align: center;
+  margin: 40px 0;
+}
+
+.checkmark {
+  font-size: 3rem;
+  color: green;
+}
+
+.details-section {
+  display: flex;
+  gap: 20px;
+  
+}
+
+.review-box {
+  flex: 2;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #F8F3FB;
+}
+
+.item-info {
+  display: flex;
+  gap: 20px;
+}
+
+.item-info img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.item-text h3 {
+  margin: 0;
+}
+
+.author {
+  font-style: italic;
+  color: #555;
+}
+
+.category {
+  display: inline-block;
+  margin: 5px 0;
+  background-color: #f0c040;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.status {
+
+  height: 30px;
+  width: 10%;
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #16CD41;
+  border-radius: 5px;
+  text-align: center;
+  padding-top: 10px;
+}
+
+.actions-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+ 
+
+}
+
+.quick-actions button {
+  display: block;
+  width: 100%;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+
+}
+.quick-actions{
+   border: 1px solid #ccc;
+   padding: 20px;
+   border-radius: 5px;
+   background-color: #F8F3FB;
+}
+
+.add-item {
+  background-color: #c8a2ff;
+  color: white;
+}
+
+.back-market {
+  background-color: white;
+  border: 1px solid #c8a2ff;
+  color: #8a2be2;
+}
+
+.submission-details {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #F8F3FB;
+}

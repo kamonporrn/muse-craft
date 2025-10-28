@@ -1,0 +1,151 @@
+
+
+.bar{
+height: 120px; 
+width: 100%;
+margin-top: -10px;
+background: #8B0ACB;
+margin-bottom: 20px;
+display: flex;
+}
+
+.search{
+  margin-top: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-self:center;
+  width: 65%;
+  height: 50px;
+  background-color: #ffff;
+  font-size:30px ;
+  border-radius: 18px;
+  border: #ffff;
+  padding: 10px;
+  margin-left: 15%;
+
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #555;
+  margin-bottom: 25px;
+}
+
+
+.form-box {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  text-align: left;
+}
+
+
+.form-left,
+.form-right {
+  flex: 1;
+  background: #f8f4ff;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+input,
+select,
+textarea {
+  width: 93%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  outline: none;
+}
+
+select {
+  height: 45px; 
+  width: 99%;             
+}
+
+textarea {
+  resize: none;
+  height: 80px;
+}
+
+
+.upload-box {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 25px;
+  text-align: center;
+  color: #777;
+  margin-top: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: border 0.3s;
+}
+
+.upload-box:hover {
+  border-color: #8a2be2;
+}
+
+.upload-icon {
+  display: block;
+  font-size: 22px;
+  margin-top: 8px;
+}
+
+
+.btn-group {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.cancel-btn {
+  background: #ffc107;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.create-btn {
+  background: #28a745;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cancel-btn:hover {
+  background: #e0a800;
+}
+
+.create-btn:hover {
+  background: #218838;
+}
