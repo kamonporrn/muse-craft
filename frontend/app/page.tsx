@@ -8,21 +8,34 @@ import { motion } from "framer-motion";
 import {
   BookOpen,
   Palette,
-  Diamond,
   PenTool,
   Scissors,
   Shapes,
   Image as ImageIcon,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
 import { products, toSlug } from "@/lib/products";
+import { isSignedIn, getUserName } from "@/lib/auth";
 
 export default function Home() {
-  const [search, setSearch] = useState("");
   const router = useRouter();
 
-  // Featured (link to real products by name)
+  // Search state (shared to Navbar / NavbarSignedIn)
+  const [search, setSearch] = useState("");
+
+  // Signed-in state for swapping navbar
+  const [signed, setSigned] = useState(false);
+  const [userName, setUserName] = useState("Muse User");
+
+  useEffect(() => {
+    // read only on client
+    setSigned(isSignedIn());
+    setUserName(getUserName());
+  }, []);
+
+  // Featured picks (ensure names match your data exactly)
   const featuredNames = ["Mystery Way", "The Changeling Worlds", "Ocean Whisper"];
   const featured = featuredNames
     .map((name) => products.find((p) => p.name === name))
@@ -32,41 +45,59 @@ export default function Home() {
 
   // Auto-rotate every 3s
   useEffect(() => {
+    if (featured.length < 2) return;
     const id = setInterval(() => {
       setActive((prev) => (prev + 1) % featured.length);
     }, 3000);
     return () => clearInterval(id);
   }, [featured.length]);
 
-  // Best seller list (filter by search, then sort by rating desc, price desc as tie-break)
+  // Best sellers (filter by search, sort by rating desc, tie-break price desc)
   const bestSellers = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = products.filter((p) =>
-      q ? p.name.toLowerCase().includes(q) : true
+      q ? p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q) : true
     );
     list = list.sort((a, b) => (b.rating - a.rating) || (b.price - a.price));
-    return list.slice(0, 8); // show top 8
+    return list.slice(0, 4); // show top 4
   }, [search]);
 
+  // Badge classes keyed by category TITLE
   const categoryBadge: Record<string, string> = {
-    painting: "bg-yellow-100 text-yellow-800",
-    sculpture: "bg-indigo-100 text-indigo-800",
-    literature: "bg-green-100 text-green-800",
-    "graphic-design": "bg-pink-100 text-pink-800",
-    crafts: "bg-amber-100 text-amber-800",
-    "digital-art": "bg-blue-100 text-blue-800",
+    "Painting": "bg-yellow-100 text-yellow-800",
+    "Sculpture": "bg-indigo-100 text-indigo-800",
+    "Literature (E-book)": "bg-green-100 text-green-800",
+    "Graphic Design": "bg-pink-100 text-pink-800",
+    "Crafts": "bg-amber-100 text-amber-800",
+    "Digital Art": "bg-blue-100 text-blue-800",
+  };
+
+  const onSearchSubmit = (q: string) => {
+    const qq = q.trim();
+    if (!qq) return;
+    router.push(`/search?q=${encodeURIComponent(qq)}`);
   };
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans">
-      <Navbar
-        search={search}
-        onSearchChange={setSearch}
-        onSearchSubmit={(q) => {
-          const qq = q.trim();
-          if (qq) router.push(`/search?q=${encodeURIComponent(qq)}`);
-        }}
-      />
+      {/* Swap Navbar by signed-in status */}
+      {signed ? (
+        <NavbarSignedIn
+          search={search}
+          onSearchChange={setSearch}
+          onSearchSubmit={onSearchSubmit}
+          user={{ name: userName, avatarUrl: "/avatar-placeholder.png" }}
+          cartCount={"10+"}
+          onCartClick={() => router.push("/cart")}
+          onBellClick={() => console.log("notifications")}
+        />
+      ) : (
+        <Navbar
+          search={search}
+          onSearchChange={setSearch}
+          onSearchSubmit={onSearchSubmit}
+        />
+      )}
 
       {/* ===== Featured Section ===== */}
       <motion.section
@@ -79,7 +110,7 @@ export default function Home() {
           <div className="absolute inset-0 flex items-center justify-center">
             {featured.map((item, i) => {
               const n = featured.length;
-              const diff = (i - active + n) % n; // 0,1,2...
+              const diff = (i - active + n) % n; // 0 = center, 1 = right, 2 = left
               const x = diff === 0 ? 0 : diff === 1 ? 400 : -400;
               const scale = diff === 0 ? 1 : 0.75;
               const opacity = diff === 0 ? 1 : 0.6;
@@ -176,7 +207,7 @@ export default function Home() {
         <h2 className="text-2xl font-bold mb-6">Best Seller</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {bestSellers.slice(0, 4).map((item) => (
+          {bestSellers.map((item) => (
             <Link
               key={item.name}
               href={`/product/${toSlug(item.name)}`}
@@ -193,15 +224,13 @@ export default function Home() {
                 {/* Category badge on image */}
                 <span
                   className={`absolute left-3 top-3 text-xs font-semibold px-2 py-1 rounded-full
-                              ${categoryBadge[item.category] ?? "bg-gray-100 text-gray-800"}`}
+                    ${categoryBadge[item.category] ?? "bg-gray-100 text-gray-800"}`}
                 >
                   {item.category}
                 </span>
               </div>
 
               <div className="p-4">
-                {/* keep the line below if you want category text under the image too */}
-                {/* <p className="text-sm text-green-600 font-medium mb-1">{item.category}</p> */}
                 <h3 className="font-semibold">{item.name}</h3>
                 <p className="text-gray-500">{item.author}</p>
                 <p className="text-purple-600 font-semibold mt-2">
@@ -212,7 +241,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
     </div>
   );
 }
