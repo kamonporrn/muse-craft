@@ -28,7 +28,7 @@ const ROLES: Role[] = [
     title: "Seller",
     desc: "List your works, manage pricing, inventory, and track your sales.",
     icon: Store,
-    primaryRoute: "/seller/dashboard",
+    primaryRoute: "/seller",
   },
   {
     id: "bidder",
