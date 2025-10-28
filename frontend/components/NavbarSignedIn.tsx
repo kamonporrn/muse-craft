@@ -110,7 +110,7 @@ export default function NavbarSignedIn({
           onClick={() => setOpen((v) => !v)}
         >
           <Image
-            src={user.avatarUrl || "/avatar-placeholder.png"}
+            src={user.avatarUrl || "/avatar.jpeg"}
             alt={user.name}
             width={28}
             height={28}

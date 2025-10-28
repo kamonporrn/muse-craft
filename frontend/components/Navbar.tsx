@@ -78,9 +78,6 @@ export default function Navbar({
 
       {/* Actions */}
       <div className="flex items-center gap-4">
-        <button className="relative" aria-label="Cart">
-          <ShoppingCart className="w-6 h-6 text-purple-700" />
-        </button>
         <button className="text-purple-700 font-medium" onClick={handleSignIn}>
           Sign In
         </button>

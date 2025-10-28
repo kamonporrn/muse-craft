@@ -116,7 +116,7 @@ export default function CartPage() {
         search={search}
         onSearchChange={setSearch}
         onSearchSubmit={(q) => router.push(q ? `/search?q=${encodeURIComponent(q)}` : "/search")}
-        user={{ name: "Somchai", avatarUrl: "/avatar-placeholder.png" }}
+        user={{ name: "Somchai", avatarUrl: "/avatar.jpeg" }}
         cartCount={items.length}
         onCartClick={() => router.push("/cart")}
       />

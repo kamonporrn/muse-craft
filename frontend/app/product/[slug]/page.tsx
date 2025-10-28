@@ -5,8 +5,9 @@ import Image from "next/image";
 import { notFound, useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Star, CheckCircle2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/NavbarSignedIn";
 import { getProductBySlug, toSlug } from "@/lib/products";
+import NavbarSignedIn from "@/components/NavbarSignedIn";
 
 type CartItem = {
   slug: string;
@@ -67,7 +68,11 @@ export default function ProductPage() {
 
   return (
     <main className="min-h-screen bg-purple-100 text-gray-900">
-      <Navbar search={search} onSearchChange={setSearch} />
+      <NavbarSignedIn
+        search={search}
+        onSearchChange={setSearch}
+        user={{ name: "Guest User" }}
+      />
 
       <h1 className="mx-auto max-w-6xl px-6 py-6 text-center text-4xl font-extrabold">
         {name}

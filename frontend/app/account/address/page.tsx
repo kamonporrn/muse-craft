@@ -77,7 +77,7 @@ export default function AddressBookPage() {
         onSearchSubmit={(q) =>
           router.push(q ? `/search?q=${encodeURIComponent(q)}` : "/search")
         }
-        user={{ name: "Somchai", avatarUrl: "/avatar-placeholder.png" }}
+        user={{ name: "Somchai", avatarUrl: "/avatar.jpeg" }}
         cartCount="10+"
       />
 

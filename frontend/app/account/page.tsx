@@ -18,7 +18,7 @@ export default function AccountPage() {
         search={search}
         onSearchChange={setSearch}
         onSearchSubmit={(q) => router.push(q ? `/search?q=${encodeURIComponent(q)}` : "/search")}
-        user={{ name: "Somchai", avatarUrl: "/avatar-placeholder.png" }}
+        user={{ name: "Somchai", avatarUrl: "/avatar.jpeg" }}
         cartCount="10+"
       />
 
@@ -70,7 +70,7 @@ export default function AccountPage() {
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
               <div className="flex items-center justify-center">
                 <div className="h-44 w-44 rounded-full bg-gray-200 grid place-items-center overflow-hidden">
-                  <Image src="/avatar-placeholder.png" alt="Avatar" width={176} height={176} />
+                  <Image src="/avatar.jpeg" alt="Avatar" width={176} height={176} />
                 </div>
               </div>
 

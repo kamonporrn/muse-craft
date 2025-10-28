@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Mail, Lock, User, Eye, EyeOff, ChevronRight, Apple, Facebook, Github as Google } from "lucide-react";
 
 type Props = {
   onSignInClick?: () => void;
-  onSuccessRedirect?: string; // default: /account
+  onSuccessRedirect?: string; // default -> /signin
 };
 
-export default function SignUpForm({ onSignInClick, onSuccessRedirect = "/account" }: Props) {
+export default function SignUpForm({
+  onSignInClick,
+  onSuccessRedirect = "/signin",
+}: Props) {
+  const router = useRouter();
+
   const [name, setName] = useState("Johnson Doe");
   const [email, setEmail] = useState("johnsondoe@nomail.com");
   const [password, setPassword] = useState("".padEnd(16, "*"));
@@ -21,7 +27,7 @@ export default function SignUpForm({ onSignInClick, onSuccessRedirect = "/accoun
     // TODO: call your real sign-up API
     await new Promise((r) => setTimeout(r, 900));
     setLoading(false);
-    window.location.href = onSuccessRedirect;
+    router.push(onSuccessRedirect); // 👉 ไปหน้า /signin
   };
 
   return (
@@ -116,7 +122,7 @@ export default function SignUpForm({ onSignInClick, onSuccessRedirect = "/accoun
           Already have an account?{" "}
           <button
             type="button"
-            onClick={onSignInClick}
+            onClick={onSignInClick ?? (() => router.push("/signin"))}
             className="font-semibold text-gray-900 underline underline-offset-2"
           >
             SIGNIN HERE
