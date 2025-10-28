@@ -46,12 +46,12 @@ export const products: Product[] = [
   { name: "Midnight Atlas",       author: "Kara Finn",       price: 179,  rating: 5, img: "/img/ebook6.jpg",     category: "Literature (E-book)" },
 
   // Graphic Design (กราฟิกดีไซน์)
-  { name: "Neon Poster Set",      author: "Karn Visual",     price: 499,  rating: 5, img: "/img/graphic1.jpg",   category: "Graphic Design" },
-  { name: "Minimal Brand Kit",    author: "Luca Reed",       price: 699,  rating: 4, img: "/img/graphic2.jpg",   category: "Graphic Design" },
-  { name: "Retro Cover Pack",     author: "Juno Ray",        price: 399,  rating: 4, img: "/img/graphic3.jpg",   category: "Graphic Design" },
-  { name: "Monochrome Layouts",   author: "Eli Park",        price: 459,  rating: 5, img: "/img/graphic4.jpg",   category: "Graphic Design" },
-  { name: "Gradient Toolkit",     author: "Mia Vale",        price: 289,  rating: 4, img: "/img/graphic5.jpg",   category: "Graphic Design" },
-  { name: "Social Ad Frames",     author: "Noah Grey",       price: 349,  rating: 5, img: "/img/graphic6.jpg",   category: "Graphic Design" },
+  { name: "Neon Poster Set",      author: "Karn Visual",     price: 499,  rating: 5, img: "/img/Graphic Design - 1.jpg",   category: "Graphic Design" },
+  { name: "Minimal Brand Kit",    author: "Luca Reed",       price: 699,  rating: 4, img: "/img/Graphic Design - 2.jpg",   category: "Graphic Design" },
+  { name: "Retro Cover Pack",     author: "Juno Ray",        price: 399,  rating: 4, img: "/img/Graphic Design - 3.jpg",   category: "Graphic Design" },
+  { name: "Monochrome Layouts",   author: "Eli Park",        price: 459,  rating: 5, img: "/img/Graphic Design - 4.jpg",   category: "Graphic Design" },
+  { name: "Gradient Toolkit",     author: "Mia Vale",        price: 289,  rating: 4, img: "/img/Graphic Design - 5.jpg",   category: "Graphic Design" },
+  { name: "Social Ad Frames",     author: "Noah Grey",       price: 349,  rating: 5, img: "/img/Graphic Design - 6.jpg",   category: "Graphic Design" },
 
   // Crafts (หัตถกรรม)
   { name: "Siam Weave",           author: "Aria Moonfall",   price: 1699, rating: 5, img: "/img/crafts1.jpg",    category: "Crafts" },
@@ -62,12 +62,12 @@ export const products: Product[] = [
   { name: "Golden Knot",          author: "Tida Craft",      price: 1199, rating: 5, img: "/img/crafts6.jpg",    category: "Crafts" },
 
   // Digital Art (ดิจิทัลอาร์ต)
-  { name: "The Changeling Worlds",author: "Arwang",          price: 899,  rating: 5, img: "/img/digital1.jpg",   category: "Digital Art" },
-  { name: "Pixel Aurora",         author: "Kai Vector",      price: 599,  rating: 4, img: "/img/digital2.jpg",   category: "Digital Art" },
-  { name: "Cyber Petals",         author: "Rin Nova",        price: 649,  rating: 5, img: "/img/digital3.jpg",   category: "Digital Art" },
-  { name: "Synth Dunes",          author: "Dax Orbit",       price: 549,  rating: 4, img: "/img/digital4.jpg",   category: "Digital Art" },
-  { name: "Neon Rivers",          author: "Vee Prism",       price: 729,  rating: 5, img: "/img/digital5.jpg",   category: "Digital Art" },
-  { name: "Glass City",           author: "Nova Lumen",      price: 679,  rating: 4, img: "/img/digital6.jpg",   category: "Digital Art" },
+  { name: "The Changeling Worlds",author: "Arwang",          price: 899,  rating: 5, img: "/img/Digital Art - 1.jpg",   category: "Digital Art" },
+  { name: "Pixel Aurora",         author: "Kai Vector",      price: 599,  rating: 4, img: "/img/Digital Art - 2.jpg",   category: "Digital Art" },
+  { name: "Cyber Petals",         author: "Rin Nova",        price: 649,  rating: 5, img: "/img/Digital Art - 3.jpg",   category: "Digital Art" },
+  { name: "Synth Dunes",          author: "Dax Orbit",       price: 549,  rating: 4, img: "/img/Digital Art - 4.jpg",   category: "Digital Art" },
+  { name: "Neon Rivers",          author: "Vee Prism",       price: 729,  rating: 5, img: "/img/Digital Art - 5.jpg",   category: "Digital Art" },
+  { name: "Glass City",           author: "Nova Lumen",      price: 679,  rating: 4, img: "/img/Digital Art - 6.jpg",   category: "Digital Art" },
 ];
 
 // สร้าง index จาก slug -> product

@@ -51,15 +51,15 @@ export default function ProductPage() {
         });
       }
 
+      // Save back to localStorage
       localStorage.setItem("cart", JSON.stringify(cart));
-
-      // show toast
-      setToast("Added to cart");
-      setTimeout(() => setToast(null), 1800);
-    } catch (e) {
-      console.error(e);
-      setToast("Failed to add to cart");
-      setTimeout(() => setToast(null), 1800);
+      
+      setToast("Added to cart successfully!");
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error(error);
+      setToast("Failed to add to cart. Please try again.");
+      setTimeout(() => setToast(null), 3000);
     } finally {
       setAdding(false);
     }
