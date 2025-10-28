@@ -1,9 +1,8 @@
 # Sprint 1 Retrospective Report — MuseCraft.co
 
-**Sprint Duration:** Oct 8 – Oct 29, 2025  
+**Sprint Duration:** Oct 8 – Oct 28, 2025  
 **Team:** Dev Team  
 **Product Owner:** MuseCraft.co  
-**Scrum Master:** Tanatcha Patomrotjanawong  
 
 ---
 
@@ -40,7 +39,7 @@ Deliver a functional MVP for **Homepage for user, and Product Listing Setup** fo
 |------|---------------------|--------|------|
 | QA Process | Involve QA engineer from Sprint 2 Day 2 onwards (TDD approach) | Scrum Master | Sprint 2 Day 2 |
 | Image Optimization | Implement image-rendering in Next.js and apply image compression standards | Frontend Lead | Sprint 2 Day 5 |
-| Email Verification | Integrate RestAPI for account confirmation | Backend Team | Sprint 2 Completion |
+
 
 ---
 
