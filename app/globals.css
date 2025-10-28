@@ -1,0 +1,87 @@
+/* Reset & base */
+body{margin:0;font-family:var(--font-poppins),sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+
+/* Blob animation */
+@keyframes blob{0%{transform:translate(0,0) scale(1);}33%{transform:translate(30px,-50px) scale(1.1);}66%{transform:translate(-20px,20px) scale(0.9);}100%{transform:translate(0,0) scale(1);}}
+
+.container{min-height:100vh;width:100%;background:linear-gradient(to bottom right,#EADFF8,#F3EBFB,#E6DDF6);display:flex;align-items:center;justify-content:center;padding:1rem;position:relative;overflow:hidden;}
+
+.blob{position:absolute;border-radius:9999px;mix-blend-mode:multiply;filter:blur(1.5rem);animation:blob 7s infinite ease-in-out;}
+.blob-1{top:-20%;left:-10%;width:24rem;height:24rem;background:rgba(199,210,254,.7);opacity:.7;}
+.blob-2{bottom:-20%;right:-10%;width:24rem;height:24rem;background:rgba(233,192,255,.7);opacity:.7;animation-delay:4s;}
+.blob-3{top:50%;left:25%;width:18rem;height:18rem;background:rgba(224,231,255,.7);opacity:.6;animation-delay:2s;}
+
+/* Main card */
+.main-card{width:100%;max-width:64rem;background:rgba(255,255,255,.3);backdrop-filter:blur(1rem);border-radius:1rem;box-shadow:0 25px 50px -12px rgba(0,0,0,.25);overflow:hidden;z-index:10;}
+@media(min-width:1024px){.main-card{display:grid;grid-template-columns:repeat(2,1fr);}}
+
+.info-panel{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:3rem;position:relative;background:linear-gradient(160deg,#d8b4fe 0%,#f9a8d4 100%);gap:1.5rem;}
+@media(min-width:1024px){.info-panel{display:flex;}}
+.info-panel-logo{width:100%;max-width:280px;height:auto;}
+
+.form-panel{background:#fff;padding:1.5rem;}
+@media(min-width:640px){.form-panel{padding:3rem;}}
+.form-container{width:92%;max-width:28rem;margin:0 auto;}
+
+.form-title-small{font-size:.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;}
+.form-title-large{font-size:1.5rem;font-weight:700;color:#1f2937;margin-bottom:1.5rem;}
+.form-subtitle{font-size:.875rem;color:#6b7280;margin-bottom:1.5rem;}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;color:#4b5563;font-size:.75rem;font-weight:600;margin-bottom:.5rem;}
+.input-field{width:91.5%;padding:.5rem 1rem;font-size:.875rem;color:#374151;background:#f9fafb;border:1px solid #d1d5db;border-radius:.5rem;}
+.input-field:focus{outline:none;box-shadow:0 0 0 2px #c084fc;}
+.password-input-wrapper{position:relative;}
+.password-toggle-btn{position:absolute;top:0;bottom:0;right:0;display:flex;align-items:center;padding:0 .75rem;background:transparent;border:none;cursor:pointer;color:#6b7280;}
+.password-toggle-btn svg{width:1rem;height:1rem;}
+
+.submit-button{width:100%;padding:.6rem 1rem;border:none;border-radius:.5rem;background:#334155;color:#fff;font-weight:600;cursor:pointer;transition:.3s;margin-top:.5rem;display:block;text-align:center;box-sizing:border-box;text-decoration:none;}
+.submit-button:hover{background:#1e293b;}
+
+.divider{margin:1.5rem 0;display:flex;align-items:center;}
+.divider-line{flex-grow:1;border-top:1px solid #d1d5db;}
+.divider-text{flex-shrink:0;margin:0 1rem;font-size:.75rem;color:#9ca3af;}
+
+.social-buttons-container{display:flex;flex-direction:column;gap:.75rem;}
+.social-button{width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.5rem 1rem;border:1px solid #d1d5db;border-radius:.5rem;background:#fff;color:#374151;font-weight:500;font-size:.875rem;cursor:pointer;transition:.3s;}
+.social-button:hover{background:#f3f4f6;}
+.social-button svg{width:1.25rem;height:1.25rem;}
+
+.text-center{text-align:center;}
+.mt-6{margin-top:1.5rem;}
+.mt-4{margin-top:1rem;}
+
+.forgot-password-link,.switch-form-button,.back-to-login-button{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;}
+.forgot-password-link{font-size:.875rem;font-weight:500;color:#9333ea;text-decoration:none;}
+.forgot-password-link:hover{text-decoration:underline;color:#7e22ce;}
+.switch-form-button{font-size:.75rem;font-weight:600;color:#9333ea;}
+.switch-form-button:hover{color:#7e22ce;}
+.back-to-login-button{display:inline-flex;align-items:center;gap:.5rem;font-size:.875rem;font-weight:500;color:#6b7280;transition:.3s;}
+.back-to-login-button:hover{color:#1f2937;}
+.back-to-login-button svg{width:1rem;height:1rem;}
+
+.role-container{min-height:100vh;width:100%;background:linear-gradient(135deg,#f3e8ff,#faf7e1);display:flex;align-items:center;justify-content:center;padding:2rem;}
+.role-content{width:100%;max-width:60rem;text-align:center;background:rgba(255,255,255,.6);backdrop-filter:blur(10px);padding:2rem;border-radius:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,.1);}
+@media(min-width:640px){.role-content{padding:3rem 4rem;}}
+.role-header{display:flex;flex-direction:column;align-items:center;margin-bottom:2rem;}
+.role-page-logo{width:100%;max-width:200px;margin-bottom:1rem;}
+.role-title{font-size:2rem;font-weight:700;color:#c27803;margin-bottom:3rem;}
+@media(min-width:640px){.role-title{font-size:2.5rem;}}
+.role-cards-wrapper{display:grid;gap:2rem;grid-template-columns:1fr;}
+@media(min-width:1024px){.role-cards-wrapper{grid-template-columns:repeat(3,1fr);}}
+
+.role-card{padding:2rem 1.5rem;border-radius:1rem;box-shadow:0 4px 15px rgba(0,0,0,.05);display:flex;flex-direction:column;align-items:center;gap:1.5rem;transition:.3s;}
+.role-card:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(0,0,0,.1);}
+.role-card-icon-wrapper{width:5rem;height:5rem;border-radius:9999px;display:flex;align-items:center;justify-content:center;}
+.role-card-icon-wrapper svg{width:2.5rem;height:2.5rem;color:white;}
+.role-card-title{font-size:1.5rem;font-weight:600;color:#1f2937;}
+.role-card-button{width:100%;padding:.75rem 1rem;border:none;border-radius:.5rem;font-weight:600;font-size:1rem;color:white;cursor:pointer;transition:.3s;}
+.role-card-button:hover{opacity:.9;}
+
+/* Role variants */
+.role-card-customer{background:#f5f3ff;}
+.role-card-icon-customer,.role-card-button-customer{background:#8b5cf6;}
+.role-card-seller{background:#fffbeb;}
+.role-card-icon-seller,.role-card-button-seller{background:#fbbf24;}
+.role-card-button-seller{color:#1f2937;}
+.role-card-auctions{background:#f5f3ff;}
+.role-card-icon-auctions,.role-card-button-auctions{background:#a78bfa;}
