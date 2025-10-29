@@ -24,7 +24,7 @@ export const auctions: Auction[] = [
     category: "Painting",
     medium: "Oil on canvas",
     size: "24 × 36 inches",
-    img: "/7th.jpg",
+    img: "/5th.jpg",
     startingBid: 9800,
     currentBid: 12500,
     endsAt: new Date(Date.now() + 36 * 3600 * 1000).toISOString(), // +36 ชม.
@@ -34,7 +34,7 @@ export const auctions: Auction[] = [
     titleEN: "Signed Baseball (Rare)",
     artist: "Unknown",
     category: "Crafts",
-    img: "/5th.jpg",
+    img: "/5th2.jpg",
     startingBid: 120,
     currentBid: 180,
     endsAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(), // ปิดแล้ว
@@ -44,7 +44,7 @@ export const auctions: Auction[] = [
     titleEN: "Antique Victorian Clock",
     artist: "Vintage Atelier",
     category: "Crafts",
-    img: "/6th.jpg",
+    img: "/clock.jpg",
     startingBid: 250,
     currentBid: 420,
     endsAt: new Date(Date.now() + 6 * 3600 * 1000).toISOString(), // +6 ชม.
@@ -54,7 +54,7 @@ export const auctions: Auction[] = [
     titleEN: "Moonlight Garden",
     artist: "Clara Everwood",
     category: "Digital Art",
-    img: "/ocean.jpg",
+    img: "/7th.jpg",
     startingBid: 800,
     currentBid: 800,
     endsAt: new Date(Date.now() + 3 * 86400 * 1000).toISOString(), // +3 วัน
