@@ -50,7 +50,7 @@ export default function PaymentQRPage() {
   const downloadQR = () => {
     // Demo: download static file at /public/promptpay-qr.png
     const a = document.createElement("a");
-    a.href = "/promptpay-qr.png";
+    a.href = "/QR.jpg";
     a.download = `QR-${reference}.png`;
     a.click();
   };
@@ -102,7 +102,7 @@ export default function PaymentQRPage() {
           {/* QR */}
           <div className="mx-auto max-w-md rounded-2xl border border-purple-100 bg-white p-4 shadow-sm">
             <Image
-              src="/promptpay-qr.png" // put your real QR under /public
+              src="/QR.jpg" // put your real QR under /public
               alt="PromptPay QR"
               width={640}
               height={640}
