@@ -22,11 +22,11 @@ export function toSlug(name: string) {
 export const products: Product[] = [
   // ... ใส่รายการ 36 ชิ้นของคุณให้ครบ (ชื่อ รูป ราคา ฯลฯ)
 // Painting (ภาพวาด)
-  { name: "Ocean Whisper",        author: "Clara Everwood",  price: 1499, rating: 5, img: "/img/painting1.jpg",  category: "Painting" },
-  { name: "Twilight Fields",      author: "Adrian Blake",    price: 1799, rating: 4, img: "/img/painting2.jpg",  category: "Painting" },
-  { name: "Golden Horizon",       author: "Maya Thorne",     price: 1599, rating: 5, img: "/img/painting3.jpg",  category: "Painting" },
-  { name: "Silent Harbor",        author: "Leo Hart",        price: 1399, rating: 4, img: "/img/painting4.jpg",  category: "Painting" },
-  { name: "Forest Lullaby",       author: "Nora Vale",       price: 1699, rating: 5, img: "/img/painting5.jpg",  category: "Painting" },
+  { name: "Ocean Whisper",        author: "Clara Everwood",  price: 1499, rating: 5, img: "/img/Painting1.jpg",  category: "Painting" },
+  { name: "Twilight Fields",      author: "Adrian Blake",    price: 1799, rating: 4, img: "/img/Painting2.jpg",  category: "Painting" },
+  { name: "Golden Horizon",       author: "Maya Thorne",     price: 1599, rating: 5, img: "/img/Painting3.jpg",  category: "Painting" },
+  { name: "Silent Harbor",        author: "Leo Hart",        price: 1399, rating: 4, img: "/img/Painting4.jpg",  category: "Painting" },
+  { name: "Forest Lullaby",       author: "Nora Vale",       price: 1699, rating: 5, img: "/img/Painting5.jpg",  category: "Painting" },
   { name: "City Nocturne",        author: "Iris Morrow",     price: 1899, rating: 5, img: "/img/painting6.jpg",  category: "Painting" },
 
   // Sculpture (งานปั้น/แกะสลัก)
@@ -43,7 +43,7 @@ export const products: Product[] = [
   { name: "Paper Stars",          author: "Iman Suri",       price: 129,  rating: 4, img: "/img/ebook3.jpg",     category: "Literature (E-book)" },
   { name: "Shoreline Letters",    author: "Liam North",      price: 159,  rating: 5, img: "/img/ebook4.jpg",     category: "Literature (E-book)" },
   { name: "Glass Garden",         author: "Eden Moss",       price: 139,  rating: 3, img: "/img/ebook5.jpg",     category: "Literature (E-book)" },
-  { name: "Midnight Atlas",       author: "Kara Finn",       price: 179,  rating: 5, img: "/img/ebook6.jpg",     category: "Literature (E-book)" },
+  { name: "Midnight Atlas",       author: "Kara Finn",       price: 179,  rating: 5, img: "/img/literature6.jpg",     category: "Literature (E-book)" },
 
   // Graphic Design (กราฟิกดีไซน์)
   { name: "Neon Poster Set",      author: "Karn Visual",     price: 499,  rating: 5, img: "/img/Graphic Design - 1.jpg",   category: "Graphic Design" },
@@ -51,15 +51,15 @@ export const products: Product[] = [
   { name: "Retro Cover Pack",     author: "Juno Ray",        price: 399,  rating: 4, img: "/img/Graphic Design - 3.jpg",   category: "Graphic Design" },
   { name: "Monochrome Layouts",   author: "Eli Park",        price: 459,  rating: 5, img: "/img/Graphic Design - 4.jpg",   category: "Graphic Design" },
   { name: "Gradient Toolkit",     author: "Mia Vale",        price: 289,  rating: 4, img: "/img/Graphic Design - 5.jpg",   category: "Graphic Design" },
-  { name: "Social Ad Frames",     author: "Noah Grey",       price: 349,  rating: 5, img: "/img/Graphic Design - 6.jpg",   category: "Graphic Design" },
+  { name: "Social Ad Frames",     author: "Noah Grey",       price: 349,  rating: 5, img: "/img/graphicdesign6.jpg",   category: "Graphic Design" },
 
   // Crafts (หัตถกรรม)
-  { name: "Siam Weave",           author: "Aria Moonfall",   price: 1699, rating: 5, img: "/img/crafts1.jpg",    category: "Crafts" },
-  { name: "Isan Harmony",         author: "Kenneth Bulmer",  price: 899,  rating: 4, img: "/img/crafts2.jpg",    category: "Crafts" },
-  { name: "Heritage Weaves",      author: "Kael Ashborne",   price: 1899, rating: 5, img: "/img/crafts3.jpg",    category: "Crafts" },
-  { name: "Hands of the Loom",    author: "Nyra Solstice",   price: 1299, rating: 4, img: "/img/crafts4.jpg",    category: "Crafts" },
-  { name: "Bamboo Flow",          author: "Nara Weave",      price: 799,  rating: 4, img: "/img/crafts5.jpg",    category: "Crafts" },
-  { name: "Golden Knot",          author: "Tida Craft",      price: 1199, rating: 5, img: "/img/crafts6.jpg",    category: "Crafts" },
+  { name: "Siam Weave",           author: "Aria Moonfall",   price: 1699, rating: 5, img: "/img/craft1.jpg",    category: "Crafts" },
+  { name: "Isan Harmony",         author: "Kenneth Bulmer",  price: 899,  rating: 4, img: "/img/craft2.jpg",    category: "Crafts" },
+  { name: "Heritage Weaves",      author: "Kael Ashborne",   price: 1899, rating: 5, img: "/img/craft3.png",    category: "Crafts" },
+  { name: "Hands of the Loom",    author: "Nyra Solstice",   price: 1299, rating: 4, img: "/img/craft4.jpg",    category: "Crafts" },
+  { name: "Bamboo Flow",          author: "Nara Weave",      price: 799,  rating: 4, img: "/img/craft5.jpg",    category: "Crafts" },
+  { name: "Golden Knot",          author: "Tida Craft",      price: 1199, rating: 5, img: "/img/craft6.jpg",    category: "Crafts" },
 
   // Digital Art (ดิจิทัลอาร์ต)
   { name: "The Changeling Worlds",author: "Arwang",          price: 899,  rating: 5, img: "/img/Digital Art - 1.jpg",   category: "Digital Art" },

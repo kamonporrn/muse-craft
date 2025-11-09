@@ -25,10 +25,10 @@ const ROLES: Role[] = [
   },
   {
     id: "seller",
-    title: "Seller",
+    title: "Artist & Writer",  // เปลี่ยนชื่อแสดง
     desc: "List your works, manage pricing, inventory, and track your sales.",
     icon: Store,
-    primaryRoute: "/seller/dashboard",
+    primaryRoute: "/artist-writer",  // เปลี่ยนเป็นหน้า home ของ artist-writer
   },
   {
     id: "bidder",
@@ -53,8 +53,7 @@ export default function RoleSelectPage() {
     if (prev && ROLES.some((r) => r.id === prev)) setSelected(prev);
   }, []);
 
-  // app/role/page.tsx (เฉพาะฟังก์ชัน saveAndGo)
-    const saveAndGo = useCallback(
+  const saveAndGo = useCallback(
     (role: Role) => {
         // mark as signed-in (demo)
         window.localStorage.setItem("musecraft.signedIn", "1");
@@ -66,8 +65,7 @@ export default function RoleSelectPage() {
         router.replace(role.primaryRoute);
     },
     [router]
-    );
-
+  );
 
   const onContinue = useCallback(() => {
     if (selectedRole) saveAndGo(selectedRole);
@@ -85,7 +83,6 @@ export default function RoleSelectPage() {
 
         <section
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center"
-          role="listbox"
           aria-label="Role options"
         >
           {ROLES.map((role) => {
@@ -93,14 +90,13 @@ export default function RoleSelectPage() {
             const active = selected === role.id;
             return (
               <button
+                type="button"
                 key={role.id}
                 onClick={() => setSelected(role.id)}
                 onDoubleClick={() => saveAndGo(role)}
                 className={`group relative w-full max-w-sm text-left rounded-2xl border bg-white p-5 shadow-sm transition
                 hover:shadow-md focus:outline-none focus:ring-4
                 ${active ? "border-purple-400 ring-4 ring-purple-200" : "border-gray-200"}`}
-                role="option"
-                aria-selected={active}
               >
                 {active && (
                   <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-1 text-xs font-semibold text-white">
@@ -130,6 +126,7 @@ export default function RoleSelectPage() {
 
         <div className="mt-10 flex items-center justify-center gap-3">
           <button
+            type="button"
             onClick={onContinue}
             disabled={!selectedRole}
             className={`rounded-xl px-5 py-3 font-semibold transition shadow
