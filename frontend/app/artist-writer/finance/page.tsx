@@ -1,9 +1,10 @@
 // ตัวอย่าง mock data ด้านบน component
 const data = [
-  { name: "Product A", value: 5000, color: "#6366F1" },
-  { name: "Product B", value: 3000, color: "#EC4899" },
-  { name: "Product C", value: 2000, color: "#10B981" },
+  { name: "Sales", value: 8000, color: "#6366F1" }, // สีม่วง
+  { name: "Product Auction", value: 4500, color: "#EC4899" }, // สีชมพู
+  { name: "Advertising Costs", value: 2500, color: "#10B981" }, // สีเขียว
 ];
+
 
 // รวมยอดทั้งหมด
 const totalRevenue = data.reduce((sum, item) => sum + item.value, 0);
