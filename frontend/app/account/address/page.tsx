@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
-import { MapPin, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -46,7 +46,19 @@ export default function AddressBookPage() {
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Address[]>(MOCK_ADDRESSES);
 
-  // DEMO: แก้ไขด้วย prompt แล้วอัปเดตใน state
+  // === Add-Address modal state ===
+  const [openAdd, setOpenAdd] = useState(false);
+
+  // Add new address
+  function handleAdd(newAddr: Omit<Address, "id">) {
+    setItems((prev) => {
+      const cleared = newAddr.isDefault ? prev.map((a) => ({ ...a, isDefault: false })) : prev;
+      return [...cleared, { ...newAddr, id: crypto.randomUUID() }];
+    });
+    setOpenAdd(false);
+  }
+
+  // DEMO edit with prompts
   function handleEdit(a: Address) {
     const name = window.prompt("Name", a.name);
     if (name === null) return;
@@ -63,7 +75,7 @@ export default function AddressBookPage() {
     );
   }
 
-  // DEMO: ลบออกจาก state หลังยืนยัน
+  // Delete
   function handleDelete(id: string) {
     if (!window.confirm("Delete this address?")) return;
     setItems((prev) => prev.filter((x) => x.id !== id));
@@ -105,12 +117,6 @@ export default function AddressBookPage() {
             <Link href="/cart" className="block rounded-md px-3 py-2 hover:bg-gray-50">
               My Cart
             </Link>
-            <Link href="/wishlist" className="block rounded-md px-3 py-2 hover:bg-gray-50">
-              My Wishlist
-            </Link>
-            <Link href="/coupons" className="block rounded-md px-3 py-2 hover:bg-gray-50">
-              Coupons
-            </Link>
           </nav>
         </aside>
 
@@ -120,7 +126,7 @@ export default function AddressBookPage() {
             <h2 className="text-2xl font-extrabold">Address Book</h2>
             <button
               className="rounded-full border border-purple-300 text-purple-700 px-4 py-1.5 text-sm hover:bg-purple-50"
-              onClick={() => alert("Open Add Address modal (demo)")}
+              onClick={() => setOpenAdd(true)}
             >
               Add My Address
             </button>
@@ -134,7 +140,7 @@ export default function AddressBookPage() {
                 key={a.id}
                 className="rounded-xl bg-purple-50/70 px-4 py-4 shadow-[0_1px_0_#e9d5ff] ring-1 ring-[#eadcff] text-gray-800"
               >
-                {/* แถวบน: ชื่อ/เบอร์ + Default + ปุ่มแก้/ลบ */}
+                {/* Top row */}
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div className="font-semibold">
                     {a.name}
@@ -167,7 +173,7 @@ export default function AddressBookPage() {
                   </div>
                 </div>
 
-                {/* แถวล่าง: รายละเอียดที่อยู่ */}
+                {/* Address lines */}
                 <div className="mt-2 text-[15px] leading-6">
                   {a.line1}
                   {a.line2 ? (
@@ -182,6 +188,113 @@ export default function AddressBookPage() {
           </div>
         </section>
       </div>
+
+      {/* === Add Address Modal === */}
+      {openAdd && (
+        <AddAddressModal
+          onClose={() => setOpenAdd(false)}
+          onAdd={(addr) => handleAdd(addr)}
+        />
+      )}
     </main>
+  );
+}
+
+/* ---------------- Modal Component ---------------- */
+function AddAddressModal({
+  onClose,
+  onAdd,
+}: {
+  onClose: () => void;
+  onAdd: (addr: Omit<Address, "id">) => void;
+}) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [addressText, setAddressText] = useState("");
+  const [isDefault, setIsDefault] = useState(false);
+
+  const canSubmit = name.trim() && phone.trim() && addressText.trim();
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) return;
+    // split textarea into line1 / line2
+    const [l1, ...rest] = addressText.trim().split(/\n+/);
+    const l2 = rest.join(" ").trim() || undefined;
+
+    onAdd({
+      name: name.trim(),
+      phone: phone.trim(),
+      line1: l1,
+      line2: l2,
+      isDefault,
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50">
+      {/* backdrop */}
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+
+      {/* panel */}
+      <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white shadow-xl">
+        <div className="flex items-center justify-between px-5 py-4">
+          <h3 className="text-lg font-bold">Add New Address</h3>
+          <button
+            aria-label="Close"
+            className="rounded-full p-2 hover:bg-gray-100"
+            onClick={onClose}
+          >
+            ✕
+          </button>
+        </div>
+        <hr />
+
+        <form onSubmit={submit} className="px-5 py-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input
+              placeholder="Enter Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="rounded-md border border-purple-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200"
+            />
+            <input
+              placeholder="Enter Phone Number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="rounded-md border border-purple-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200"
+            />
+          </div>
+
+          <textarea
+            placeholder="Enter Address"
+            rows={4}
+            value={addressText}
+            onChange={(e) => setAddressText(e.target.value)}
+            className="w-full rounded-md border border-purple-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200"
+          />
+
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+              checked={isDefault}
+              onChange={(e) => setIsDefault(e.target.checked)}
+            />
+            Set as default
+          </label>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={!canSubmit}
+              className="rounded-md bg-purple-600 px-4 py-2 text-white text-sm font-semibold hover:bg-purple-700 disabled:opacity-50"
+            >
+              Add Address
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

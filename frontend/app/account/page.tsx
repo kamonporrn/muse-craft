@@ -4,7 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
-import { MapPin, Wallet, Truck, MessageSquareMore, ShoppingCart, Heart } from "lucide-react";
+import { MapPin, Wallet, Truck, MessageSquareMore, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -46,12 +46,6 @@ export default function AccountPage() {
             <Link href="/cart" className="block rounded-md px-3 py-2 hover:bg-gray-50">
               My Cart
             </Link>
-            <Link href="/wishlist" className="block rounded-md px-3 py-2 hover:bg-gray-50">
-              My Wishlist
-            </Link>
-            <Link href="/coupons" className="block rounded-md px-3 py-2 hover:bg-gray-50">
-              Coupons
-            </Link>
           </nav>
         </aside>
 
@@ -61,9 +55,14 @@ export default function AccountPage() {
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-extrabold">My Profile</h2>
-              <button className="rounded-full border border-purple-300 text-purple-700 px-4 py-1.5 text-sm hover:bg-purple-50">
+
+              {/* แก้เป็น Link เพื่อเชื่อมไปหน้า /account/profile */}
+              <Link
+                href="/account/editprofile"
+                className="rounded-full border border-purple-300 text-purple-700 px-4 py-1.5 text-sm hover:bg-purple-50"
+              >
                 Edit My Profile
-              </button>
+              </Link>
             </div>
             <hr className="my-4" />
 
@@ -91,9 +90,12 @@ export default function AccountPage() {
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-extrabold">Address Book</h2>
-              <button className="rounded-full border border-purple-300 text-purple-700 px-4 py-1.5 text-sm hover:bg-purple-50">
+              <Link
+                href="/account/address"
+                className="rounded-full border border-purple-300 text-purple-700 px-4 py-1.5 text-sm hover:bg-purple-50"
+              >
                 Edit My Address
-              </button>
+              </Link>
             </div>
             <hr className="my-4" />
 
@@ -107,7 +109,7 @@ export default function AccountPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatusCard
               icon={<Wallet className="w-10 h-10" />}
-              title="Awaiting Payment"
+              title="Pending Payment"
               href="/orders?status=pending"
             />
             <StatusCard
@@ -117,12 +119,12 @@ export default function AccountPage() {
             />
             <StatusCard
               icon={<Truck className="w-10 h-10" />}
-              title="In Transit"
+              title="Shipping"
               href="/orders?status=shipping"
             />
             <StatusCard
               icon={<MessageSquareMore className="w-10 h-10" />}
-              title="Write a Review"
+              title="Rate Products"
               href="/orders?canReview=true"
             />
           </div>
