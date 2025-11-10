@@ -6,11 +6,10 @@ const MyProductPage: React.FC = () => {
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState(""); 
-  const [stock, setStock] = useState(""); 
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
   const [image, setImage] = useState<File | null>(null);
 
-  // state สำหรับเก็บ error ของแต่ละ field
   const [errors, setErrors] = useState({
     productName: "",
     category: "",
@@ -23,17 +22,16 @@ const MyProductPage: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
-      setErrors((prev) => ({ ...prev, image: "" })); // ลบ error
+      setErrors((prev) => ({ ...prev, image: "" }));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // ตรวจสอบแต่ละ field
     const newErrors = {
       productName: productName ? "" : "Please enter product name",
-      category: category ? "" : "Please enter category",
+      category: category ? "" : "Please select category",
       description: description ? "" : "Please enter description",
       price: price ? "" : "Please enter price",
       stock: stock ? "" : "Please enter stock",
@@ -41,14 +39,12 @@ const MyProductPage: React.FC = () => {
     };
     setErrors(newErrors);
 
-    // ถ้ามี error ใด ๆ ไม่ส่งข้อมูล
     const hasError = Object.values(newErrors).some((err) => err !== "");
     if (hasError) return;
 
     const productData = { productName, category, description, price, stock, image };
     console.log("Creating product:", productData);
 
-    // Reset form
     setProductName("");
     setCategory("");
     setDescription("");
@@ -65,7 +61,6 @@ const MyProductPage: React.FC = () => {
     });
   };
 
-  // helper สำหรับ class border
   const inputClass = (error: string) =>
     `border rounded-lg p-3 text-gray-700 ${error ? "border-red-500" : "border-gray-300"}`;
 
@@ -75,7 +70,7 @@ const MyProductPage: React.FC = () => {
       <div className="max-w-3xl mx-auto mb-8">
         <h1 className="text-3xl mb-2 flex items-center gap-1">
           <span className="font-bold text-black">My Product</span>
-          <span className="text-gray-800">/</span>
+          <span className="text-gray-800"> / </span>
           <span className="font-medium text-purple-500">Add New Product</span>
         </h1>
         <p className="text-gray-600 text-lg">Add and manage your products easily</p>
@@ -99,16 +94,22 @@ const MyProductPage: React.FC = () => {
             {errors.productName && <p className="text-red-500 text-sm mt-1">{errors.productName}</p>}
           </div>
 
-          {/* Category */}
+          {/* Category (Dropdown) */}
           <div className="flex flex-col">
             <label className="text-gray-700 font-medium mb-1">Category</label>
-            <input
-              type="text"
-              placeholder="Enter category"
+            <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className={inputClass(errors.category)}
-            />
+              className={`${inputClass(errors.category)} bg-white`}
+            >
+              <option value="">Select category</option>
+              <option value="Art Work">Art Work</option>
+              <option value="E-book">E-book</option>
+              <option value="Art Digital">Art Digital</option>
+              <option value="Graphic design">Graphic design</option>
+              <option value="Sculpture">Sculpture</option>
+              <option value="Crafts">Crafts</option>
+            </select>
             {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
           </div>
 
@@ -160,7 +161,11 @@ const MyProductPage: React.FC = () => {
           {/* Product Image */}
           <div className="flex flex-col">
             <label className="text-gray-700 font-medium mb-1">Product Image</label>
-            <label className={`flex flex-col items-center justify-center border-2 rounded-lg p-6 cursor-pointer text-gray-700 ${errors.image ? "border-red-500" : "border-dashed border-gray-300"}`}>
+            <label
+              className={`flex flex-col items-center justify-center border-2 rounded-lg p-6 cursor-pointer text-gray-700 ${
+                errors.image ? "border-red-500" : "border-dashed border-gray-300"
+              }`}
+            >
               {image ? image.name : "Drag & Drop or Choose image to upload"}
               <input type="file" className="hidden" onChange={handleImageChange} />
             </label>
