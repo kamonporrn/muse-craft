@@ -1,0 +1,356 @@
+// app/admin/users/page.tsx
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Search } from "lucide-react";
+import AdminNavbar from "@/components/AdminNavbar";
+
+/* ---------- Types ---------- */
+type Role = "Creator" | "Collector" | "Admin" | "Charity";
+type Status = "Normal" | "Suspended" | "Deleted";
+
+type UserRow = {
+  id: string;
+  accountId: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  role: Role;
+  status: Status;
+};
+
+/* ---------- Mock data ---------- */
+const SEED: UserRow[] = [
+  {
+    id: "u1",
+    accountId: "#CRE-001",
+    name: "Olivia Chen",
+    email: "creator@email.com",
+    role: "Creator",
+    status: "Normal",
+    avatar: "/img/avatars/a1.jpg",
+  },
+  {
+    id: "u2",
+    accountId: "#CRE-002",
+    name: "Mason Park",
+    email: "creator2@email.com",
+    role: "Creator",
+    status: "Suspended",
+    avatar: "/img/avatars/a2.jpg",
+  },
+  {
+    id: "u3",
+    accountId: "#COL-001",
+    name: "Noah Brown",
+    email: "collector@email.com",
+    role: "Collector",
+    status: "Normal",
+    avatar: "/img/avatars/a3.jpg",
+  },
+  {
+    id: "u4",
+    accountId: "#AD-001",
+    name: "Admin01",
+    email: "admin01@email.com",
+    role: "Admin",
+    status: "Normal",
+    avatar: "/img/avatars/a4.jpg",
+  },
+  {
+    id: "u5",
+    accountId: "#CHA-001",
+    name: "Charity",
+    email: "charity@email.com",
+    role: "Charity", // 👈 ระบุบทบาท Charity ชัดเจน
+    status: "Normal",
+    avatar: "/img/avatars/a5.jpg",
+  },
+];
+
+/* ---------- Helpers ---------- */
+const badge = (status: Status) => {
+  if (status === "Normal") return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
+  if (status === "Suspended") return "bg-rose-50 text-rose-700 ring-1 ring-rose-200";
+  return "bg-gray-50 text-gray-500 ring-1 ring-gray-200";
+};
+
+export default function AdminUsersPage() {
+  // ===== Guard: admin เท่านั้น =====
+  const [ok, setOk] = useState(false);
+  const [userName, setUserName] = useState("Admin01");
+  useEffect(() => {
+    try {
+      const role = localStorage.getItem("musecraft.role");
+      const name = localStorage.getItem("musecraft.userName") || "Admin01";
+      setUserName(name);
+      if (role === "admin") setOk(true);
+      else window.location.replace("/signin");
+    } catch {
+      window.location.replace("/signin");
+    }
+  }, []);
+
+  const [rows, setRows] = useState<UserRow[]>(SEED);
+
+  /* --------- Filters & search --------- */
+  const [q, setQ] = useState("");
+  const [fRole, setFRole] = useState<"All" | Role>("All");
+  const [fStatus, setFStatus] = useState<"All" | Status>("All");
+
+  /* --------- Pagination --------- */
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
+
+  const filtered = useMemo(() => {
+    const data = rows.filter((r) => {
+      if (fRole !== "All" && r.role !== fRole) return false;
+      if (fStatus !== "All" && r.status !== fStatus) return false;
+      if (q) {
+        const key = (r.name + " " + r.email + " " + r.accountId).toLowerCase();
+        if (!key.includes(q.toLowerCase())) return false;
+      }
+      return true;
+    });
+    return data;
+  }, [rows, fRole, fStatus, q]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const current = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  /* --------- Actions --------- */
+  const toggleSuspend = (id: string) => {
+    setRows((arr) =>
+      arr.map((u) =>
+        u.id === id
+          ? { ...u, status: u.status === "Suspended" ? "Normal" : "Suspended" }
+          : u
+      )
+    );
+  };
+
+  const deleteAccount = (id: string) => {
+    setRows((arr) =>
+      arr.map((u) => (u.id === id ? { ...u, status: "Deleted" } : u))
+    );
+  };
+
+  // ปุ่มหลักตามบทบาท (ตามภาพที่อธิบาย)
+  const primaryAction = (u: UserRow) => {
+    switch (u.role) {
+      case "Creator":
+        return { href: `/admin/users/${u.id}/artworks`, label: "View Artworks" };
+      case "Collector":
+      case "Charity":
+        return { href: `/admin/users/${u.id}`, label: "View Account" };
+      case "Admin":
+        return { href: `/admin/users/${u.id}/log`, label: "View Log" };
+      default:
+        return { href: `/admin/users/${u.id}`, label: "View" };
+    }
+  };
+
+  if (!ok) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#efe2fb] text-gray-700">
+        Checking permission…
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#efe2fb]">
+      <AdminNavbar userName={userName} />
+
+      <main className="mx-auto max-w-6xl px-4 py-6">
+        <h1 className="text-2xl font-bold text-gray-900">Users Management</h1>
+
+        {/* Filters */}
+        <section className="mt-4 rounded-2xl bg-white p-4 ring-1 ring-purple-100 shadow-sm">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            {/* Role */}
+            <div>
+              <div className="mb-1 text-sm font-semibold text-gray-700">Roles of Users</div>
+              <select
+                value={fRole}
+                onChange={(e) => {
+                  setPage(1);
+                  setFRole(e.target.value as any);
+                }}
+                className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+              >
+                <option>All</option>
+                <option>Creator</option>
+                <option>Collector</option>
+                <option>Admin</option>
+                <option>Charity</option>
+              </select>
+            </div>
+
+            {/* Status */}
+            <div>
+              <div className="mb-1 text-sm font-semibold text-gray-700">Status</div>
+              <select
+                value={fStatus}
+                onChange={(e) => {
+                  setPage(1);
+                  setFStatus(e.target.value as any);
+                }}
+                className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+              >
+                <option>All</option>
+                <option>Normal</option>
+                <option>Suspended</option>
+                <option>Deleted</option>
+              </select>
+            </div>
+
+            {/* Search */}
+            <div className="md:col-span-2">
+              <div className="mb-1 text-sm font-semibold text-gray-700">Search</div>
+              <div className="flex items-center rounded-full border border-gray-200 bg-white px-3 py-2.5 focus-within:border-purple-400">
+                <Search className="mr-2 h-4 w-4 text-purple-600" />
+                <input
+                  value={q}
+                  onChange={(e) => {
+                    setPage(1);
+                    setQ(e.target.value);
+                  }}
+                  placeholder="Search by name, email or account ID…"
+                  className="w-full bg-transparent text-sm text-gray-800 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Table */}
+        <section className="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-purple-100 shadow-sm">
+          <table className="min-w-full text-sm">
+            <thead className="bg-purple-50 text-gray-600">
+              <tr>
+                <th className="px-4 py-3 text-left">Users</th>
+                <th className="px-4 py-3 text-left">Account ID</th>
+                <th className="px-4 py-3 text-left">Role</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {current.map((u) => {
+                const pa = primaryAction(u);
+                return (
+                  <tr key={u.id} className="hover:bg-purple-50/40">
+                    {/* User cell */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 overflow-hidden rounded-full ring-1 ring-black/5">
+                          <Image
+                            src={u.avatar || "/avatar-placeholder.png"}
+                            alt={u.name}
+                            width={80}
+                            height={80}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{u.name}</div>
+                          <div className="text-xs text-gray-500">{u.email}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3 text-gray-700">{u.accountId}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+                        {u.role}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(u.status)}`}>
+                        {u.status}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Primary view button ตามบทบาท */}
+                        <Link
+                          href={pa.href}
+                          className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
+                        >
+                          {pa.label}
+                        </Link>
+
+                        {/* Suspend / Unsuspend */}
+                        <button
+                          onClick={() => toggleSuspend(u.id)}
+                          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                            u.status === "Suspended"
+                              ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                              : "bg-rose-100 text-rose-700 hover:bg-rose-200"
+                          }`}
+                        >
+                          {u.status === "Suspended" ? "Unsuspend" : "Suspend"}
+                        </button>
+
+                        {/* Delete Account: โชว์เฉพาะตอน Suspended */}
+                        {u.status === "Suspended" && (
+                          <button
+                            onClick={() => deleteAccount(u.id)}
+                            className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-200 hover:bg-amber-100"
+                          >
+                            Delete Account
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {current.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-gray-600">
+                    No users match your filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Footer: pagination */}
+          <div className="flex items-center justify-between px-4 py-3 text-sm text-gray-600">
+            <div>
+              Showing{" "}
+              <span className="font-medium">
+                {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)}
+              </span>{" "}
+              of <span className="font-medium">{filtered.length}</span> results
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="rounded-full bg-white px-4 py-1.5 ring-1 ring-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </button>
+              <button
+                className="rounded-full bg-white px-4 py-1.5 ring-1 ring-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
