@@ -48,7 +48,7 @@ export default function Home() {
     if (featured.length < 2) return;
     const id = setInterval(() => {
       setActive((prev) => (prev + 1) % featured.length);
-    }, 3000);
+    }, 7000);
     return () => clearInterval(id);
   }, [featured.length]);
 

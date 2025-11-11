@@ -1,11 +1,10 @@
-// app/role/page.tsx
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Store, Gavel, CheckCircle2 } from "lucide-react";
+import { User, Paintbrush, Heart, CheckCircle2 } from "lucide-react";
 
-type RoleId = "customer" | "seller" | "bidder";
+type RoleId = "customer" | "creator" | "charity";
 
 type Role = {
   id: RoleId;
@@ -19,55 +18,65 @@ const ROLES: Role[] = [
   {
     id: "customer",
     title: "Customer",
-    desc: "Browse artworks, digital items, and crafts. Add to cart and purchase easily.",
+    desc: "Browse artworks and digital items. Add to cart and purchase easily.",
     icon: User,
     primaryRoute: "/",
   },
   {
-    id: "seller",
-    title: "Seller",
-    desc: "List your works, manage pricing, inventory, and track your sales.",
-    icon: Store,
-    primaryRoute: "/seller",
+    id: "creator",
+    title: "Creator",
+    desc: "Upload your works, set prices, or start auctions and track performance.",
+    icon: Paintbrush,
+    primaryRoute: "/creator",
   },
   {
-    id: "bidder",
-    title: "Bidder",
-    desc: "Join live auctions, place bids, and win exclusive pieces.",
-    icon: Gavel,
-    primaryRoute: "/auctions",
+    id: "charity",
+    title: "Charity",
+    desc: "Manage your account and purchases related to charity programs.",
+    icon: Heart,
+    primaryRoute: "/charity",
   },
 ];
 
 export default function RoleSelectPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<RoleId | null>(null);
-  
+
+  // โหลดค่าที่เคยเลือก / ทำ migration จากค่าเก่า (seller→creator, bidder→customer)
+  useEffect(() => {
+    const prev = window.localStorage.getItem("musecraft.role");
+    if (!prev) return;
+
+    // map ค่าเก่าให้เข้ากับ 3 บทบาทใหม่
+    const mapped =
+      prev === "seller" ? "creator" :
+      prev === "bidder" ? "customer" :
+      prev;
+
+    if (["customer", "creator", "charity"].includes(mapped)) {
+      setSelected(mapped as RoleId);
+      if (mapped !== prev) {
+        window.localStorage.setItem("musecraft.role", mapped);
+      }
+    }
+  }, []);
+
   const selectedRole = useMemo(
     () => ROLES.find((r) => r.id === selected) || null,
     [selected]
   );
 
-  useEffect(() => {
-    const prev = window.localStorage.getItem("musecraft.role") as RoleId | null;
-    if (prev && ROLES.some((r) => r.id === prev)) setSelected(prev);
-  }, []);
-
-  // app/role/page.tsx (เฉพาะฟังก์ชัน saveAndGo)
-    const saveAndGo = useCallback(
-    (role: Role) => {
-        // mark as signed-in (demo)
-        window.localStorage.setItem("musecraft.signedIn", "1");
-        // save chosen role
-        window.localStorage.setItem("musecraft.role", role.id);
-        // (optional) บันทึกชื่อผู้ใช้ mock
-        window.localStorage.setItem("musecraft.userName", "Muse User");
-
-        router.replace(role.primaryRoute);
-    },
-    [router]
-    );
-
+  const saveAndGo = useCallback((role: Role) => {
+    // mark as signed-in (demo)
+    window.localStorage.setItem("musecraft.signedIn", "1");
+    // save chosen role
+    window.localStorage.setItem("musecraft.role", role.id);
+    // (optional) ชื่อผู้ใช้ mock
+    if (!window.localStorage.getItem("musecraft.userName")) {
+      window.localStorage.setItem("musecraft.userName", "Muse User");
+    }
+    router.replace(role.primaryRoute);
+  }, [router]);
 
   const onContinue = useCallback(() => {
     if (selectedRole) saveAndGo(selectedRole);
