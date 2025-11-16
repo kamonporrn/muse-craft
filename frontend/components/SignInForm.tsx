@@ -2,72 +2,39 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, ChevronRight, Apple, Facebook, Github as Google } from "lucide-react";
-import { validateUser } from "@/lib/users";
 
-type Props = { onSignUpClick?: () => void; onForgotPasswordClick?: () => void };
+type Props = {
+  onSignUpClick?: () => void;
+  onForgotPasswordClick?: () => void;
+};
 
-export default function SignInForm({ onSignUpClick }: Props) {
-  const router = useRouter();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");        // เดิมใช้ padEnd ไม่จำเป็น
+export default function SignInForm({ onSignUpClick, onForgotPasswordClick }: Props) {
+  const [email, setEmail] = useState("johnsondoe@nomail.com"); // ตามภาพ
+  const [password, setPassword] = useState("".padEnd(16, "*"));
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErr(null);
     setLoading(true);
-
-    await new Promise((r) => setTimeout(r, 300)); // เดโม่ latency
-    const user: any = validateUser(email, password);
-
+    // TODO: call your real sign-in API
+    await new Promise((r) => setTimeout(r, 900));
     setLoading(false);
-
-    if (!user) {
-      setErr("Invalid email or password.");
-      return;
-    }
-    if (user._error === "suspended") {
-      setErr("This account is suspended. Please contact support.");
-      return;
-    }
-    if (user._error === "deleted") {
-      setErr("This account has been deleted.");
-      return;
-    }
-
-    // ✅ ทำให้ role สอดคล้องกับ guards (ซึ่งเช็ค 'admin' ตัวเล็ก)
-    const roleLower = String(user.role || "").toLowerCase(); // "Admin" -> "admin"
-
-    // เก็บ session (demo)
-    localStorage.setItem("musecraft.signedIn", "true");
-    localStorage.setItem("musecraft.userName", user.name);
-    localStorage.setItem("musecraft.role", roleLower);       // เก็บแบบตัวเล็ก
-    localStorage.setItem("musecraft.roleRaw", user.role);    // เผื่อใช้แสดงผล
-
-    // นำทาง
-    router.replace(roleLower === "admin" ? "/admin" : "/role");
-    router.refresh();
+    window.location.href = "/role"; // ไปหน้าเลือกบทบาทหลัง sign in
   };
 
   return (
     <div className="mx-auto w-full max-w-md">
+      {/* Heading */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">Welcome Back</h1>
         <p className="text-sm text-gray-500">Sign in to continue</p>
       </div>
 
-      {err && (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {err}
-        </div>
-      )}
-
+      {/* Form */}
       <form onSubmit={submit} className="space-y-4">
+        {/* Email */}
         <label className="block">
           <span className="mb-1 block text-sm text-gray-700">Email</span>
           <div className="relative">
@@ -78,12 +45,12 @@ export default function SignInForm({ onSignUpClick }: Props) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-3 text-gray-900 outline-none ring-0 focus:border-gray-400"
-              placeholder="example@example.com"
-              autoComplete="email"
+              placeholder="you@example.com"
             />
           </div>
         </label>
 
+        {/* Password */}
         <label className="block">
           <span className="mb-1 block text-sm text-gray-700">Password</span>
           <div className="relative">
@@ -94,8 +61,7 @@ export default function SignInForm({ onSignUpClick }: Props) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-10 text-gray-900 outline-none ring-0 focus:border-gray-400"
-              placeholder="••••••••"
-              autoComplete="current-password"
+              placeholder="••••••••••••"
             />
             <button
               type="button"
@@ -108,14 +74,16 @@ export default function SignInForm({ onSignUpClick }: Props) {
           </div>
         </label>
 
+        {/* Sign in */}
         <button
           type="submit"
           disabled={loading}
           className="mt-1 w-full rounded-xl bg-gray-900 px-4 py-3 font-medium text-white hover:bg-black disabled:opacity-60"
         >
-          {loading ? "Signing in..." : "SIGN IN"}
+          {loading ? "Signing in..." : "SING IN"}
         </button>
 
+        {/* Create account */}
         <button
           type="button"
           onClick={onSignUpClick}
@@ -124,26 +92,34 @@ export default function SignInForm({ onSignUpClick }: Props) {
           Create an Account
         </button>
 
+        {/* Divider */}
         <div className="flex items-center gap-4 py-1 text-sm text-gray-500">
-          <span className="h-px flex-1 bg-gray-200" /> Or <span className="h-px flex-1 bg-gray-200" />
+          <span className="h-px flex-1 bg-gray-200" />
+          Or
+          <span className="h-px flex-1 bg-gray-200" />
         </div>
 
+        {/* Social buttons */}
         <div className="space-y-3">
-          <SocialBtn icon={<Google className="h-5 w-5" />} label="Sign in with Google" />
-          <SocialBtn icon={<Facebook className="h-5 w-5" />} label="Sign in with Facebook" />
-          <SocialBtn icon={<Apple className="h-5 w-5" />} label="Sign in with Apple" />
+          <SocialBtn icon={<Google className="h-5 w-5" />} label="Sign up with Google" />
+          <SocialBtn icon={<Facebook className="h-5 w-5" />} label="Sign up with Facebook" />
+          <SocialBtn icon={<Apple className="h-5 w-5" />} label="Sign up with Apple" />
         </div>
 
+        {/* Forgot password */}
+        <div className="mt-2 flex flex-col items-center gap-2 text-sm">
         <p className="mt-3 text-center text-sm">
-          <Link href="/forgot-password" className="font-semibold text-purple-700 hover:underline">
+            <Link href="/forgot-password" className="font-semibold text-purple-700 hover:underline">
             Forgot Password?
-          </Link>
+            </Link>
         </p>
+        </div>
       </form>
     </div>
   );
 }
 
+/* Social button component */
 function SocialBtn({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <button

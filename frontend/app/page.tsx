@@ -86,7 +86,7 @@ export default function Home() {
           search={search}
           onSearchChange={setSearch}
           onSearchSubmit={onSearchSubmit}
-          user={{ name: userName, avatarUrl: "/avatar.jpeg" }}
+          user={{ name: userName, avatarUrl: "/avatar-placeholder.png" }}
           cartCount={"10+"}
           onCartClick={() => router.push("/cart")}
           onBellClick={() => console.log("notifications")}

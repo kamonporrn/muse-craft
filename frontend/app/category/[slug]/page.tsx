@@ -4,9 +4,9 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Star, ShoppingCart } from "lucide-react";
+import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { products, toSlug } from "@/lib/products";
-import NavbarSignedIn from "@/components/NavbarSignedIn";
 
 // category -> badge classes (Tailwind)
 const categoryBadge: Record<string, string> = {
@@ -82,15 +82,15 @@ export default function CategoryPage() {
 
   return (
     <div className="min-h-screen bg-[#efe3ff] text-gray-900">
-      <NavbarSignedIn
+      <Navbar
         search={search}
         onSearchChange={setSearch}
         onSearchSubmit={(q) => {
           const qq = q.trim();
           if (qq) router.push(`/search?q=${encodeURIComponent(qq)}`);
         }}
-        user={{ name: "Guest" }}
       />
+
       <main className="mx-auto max-w-7xl px-6 py-6">
         <h1 className="text-2xl font-semibold mb-4">Category</h1>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Search, ShoppingCart } from "lucide-react";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -10,8 +9,8 @@ type NavbarProps = {
   search: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit?: (value: string) => void;
-  onSignIn?: () => void;
-  onSignUp?: () => void;
+  onSignIn?: () => void;  // optional override
+  onSignUp?: () => void;  // optional override
 };
 
 export default function Navbar({
@@ -33,24 +32,20 @@ export default function Navbar({
 
   const handleSignIn = useCallback(() => {
     if (onSignIn) return onSignIn();
-    router.push("/signin");
+    router.push("/signin");              // ← go to SIGN-IN page
   }, [onSignIn, router]);
 
   const handleSignUp = useCallback(() => {
     if (onSignUp) return onSignUp();
-    router.push("/signup");
+    router.push("/signup");              // ← adjust if your route differs
   }, [onSignUp, router]);
 
   return (
     <header className="flex justify-between items-center px-8 py-2 bg-purple-50 shadow-sm">
-      {/* Logo → Home */}
-      <Link
-        href="/"
-        aria-label="Go to Home"
-        className="flex items-center gap-1 cursor-pointer select-none"
-      >
-        <Image src="/logo.png" alt="MuseCraft Logo" width={100} height={100} priority />
-      </Link>
+      {/* Logo */}
+      <div className="flex items-center gap-1">
+        <Image src="/logo.png" alt="MuseCraft Logo" width={100} height={100} />
+      </div>
 
       {/* Search */}
       <form
@@ -78,6 +73,9 @@ export default function Navbar({
 
       {/* Actions */}
       <div className="flex items-center gap-4">
+        <button className="relative" aria-label="Cart">
+          <ShoppingCart className="w-6 h-6 text-purple-700" />
+        </button>
         <button className="text-purple-700 font-medium" onClick={handleSignIn}>
           Sign In
         </button>

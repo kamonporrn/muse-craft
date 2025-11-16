@@ -5,9 +5,8 @@ import Image from "next/image";
 import { notFound, useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Star, CheckCircle2 } from "lucide-react";
-import Navbar from "@/components/NavbarSignedIn";
+import Navbar from "@/components/Navbar";
 import { getProductBySlug, toSlug } from "@/lib/products";
-import NavbarSignedIn from "@/components/NavbarSignedIn";
 
 type CartItem = {
   slug: string;
@@ -52,15 +51,15 @@ export default function ProductPage() {
         });
       }
 
+      // Save back to localStorage
       localStorage.setItem("cart", JSON.stringify(cart));
-
-      // show toast
-      setToast("Added to cart");
-      setTimeout(() => setToast(null), 1800);
-    } catch (e) {
-      console.error(e);
-      setToast("Failed to add to cart");
-      setTimeout(() => setToast(null), 1800);
+      
+      setToast("Added to cart successfully!");
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      console.error(error);
+      setToast("Failed to add to cart. Please try again.");
+      setTimeout(() => setToast(null), 3000);
     } finally {
       setAdding(false);
     }
@@ -68,11 +67,7 @@ export default function ProductPage() {
 
   return (
     <main className="min-h-screen bg-purple-100 text-gray-900">
-      <NavbarSignedIn
-        search={search}
-        onSearchChange={setSearch}
-        user={{ name: "Guest User" }}
-      />
+      <Navbar search={search} onSearchChange={setSearch} />
 
       <h1 className="mx-auto max-w-6xl px-6 py-6 text-center text-4xl font-extrabold">
         {name}
@@ -168,18 +163,7 @@ export default function ProductPage() {
                 animate-[fadeIn_.2s_ease-out]
               "
             >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 24 24'
-                fill='currentColor'
-                className='w-14 h-14 text-green-500 mb-1'
-              >
-                <path
-                  fillRule='evenodd'
-                  d='M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.72a.75.75 0 1 0-1.06-1.06l-4.72 4.72-2.12-2.12a.75.75 0 1 0-1.06 1.06l2.65 2.65a.75.75 0 0 0 1.06 0l5.25-5.25z'
-                  clipRule='evenodd'
-                />
-              </svg>
+              <CheckCircle2 className="w-14 h-14 text-green-500 mb-1" />
               <span>{toast}</span>
             </div>
           </div>
