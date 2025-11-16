@@ -23,7 +23,7 @@ const Sidebar: React.FC = () => {
   return (
     <aside className="h-screen w-[260px] flex items-start bg-[#f6e9ff]">
       {/* กล่องสีขาว + เงา */}
-      <div className="mt-8 ml-4 w-full bg-white rounded-[20px] shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-4">
+      <div className="mt-8 ml-4 w-full bg-white rounded-[16px] shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-4">
         <nav className="space-y-1">
           {menuItems.map((item) => {
             const isActive = pathname === item.path;
