@@ -144,7 +144,7 @@ const RegistrationFormView = ({ onSubmissionSuccess }: { onSubmissionSuccess: (d
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-800 mb-2">Register New Product</h1>
-      <p className="text-md text-gray-600 mb-8">Provide details for the item you wish to put up for auction.</p>
+      <p className="text-md text-gray-600 mb-8">Fill in your product details to list it for the auction.</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         
