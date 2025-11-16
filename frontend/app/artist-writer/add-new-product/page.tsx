@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FaUpload } from "react-icons/fa";
 
 export default function AddNewProduct() {
+  const router = useRouter();
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
@@ -20,7 +22,20 @@ export default function AddNewProduct() {
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     console.log({ productName, category, price, stock, description, image });
-    alert("Product created!");
+    
+    // เก็บข้อมูลสินค้าที่สร้างไว้ใน localStorage เพื่อให้หน้า my-product ใช้
+    const productData = {
+      productName,
+      category,
+      price,
+      stock,
+      description,
+      imageName: image?.name || "No image",
+    };
+    localStorage.setItem('newProductData', JSON.stringify(productData));
+    
+    // Redirect ไปหน้า my-product พร้อมแสดง status view
+    router.push('/artist-writer/my-product?view=status');
   };
 
   const handleCancel = () => {
@@ -33,9 +48,8 @@ export default function AddNewProduct() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f4eafa]">
-      <main className="flex flex-1 items-center">
-        <div className="bg-white rounded-2xl shadow p-9 w-full max-w-4xl ml-0">
+    <div className="flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow p-9 w-full max-w-4xl">
 
           <h1 className="text-2xl font-semibold mb-6 text-gray-800">Add New Product</h1>
 
@@ -56,14 +70,21 @@ export default function AddNewProduct() {
             {/* Category */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <input
-                type="text"
-                placeholder="Enter category"
+              <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-gray-600"
+                className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                aria-label="Product category"
                 required
-              />
+              >
+                <option value="">-- Select Category * --</option>
+                <option value="painting">Painting</option>
+                <option value="sculpture">Sculpture</option>
+                <option value="literature">Literature (E-book)</option>
+                <option value="graphic-design">Graphic Design</option>
+                <option value="crafts">Crafts</option>
+                <option value="digital-art">Digital Art</option>
+              </select>
             </div>
 
             {/* Description */}
@@ -138,8 +159,7 @@ export default function AddNewProduct() {
               </button>
             </div>
           </form>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

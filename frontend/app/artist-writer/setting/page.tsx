@@ -5,10 +5,9 @@ import Link from "next/link";
 
 export default function SettingPage() {
   return (
-        <div className="min-h-full bg-[#f6e9ff] px-6 py-6">
-          <div className="flex w-full justify-center">
+        <div className="flex w-full justify-center">
             {/* แก้แค่ max-w-5xl -> max-w-6xl */}
-            <div className="w-full max-w-16xl flex flex-col gap-1">
+            <div className="w-full max-w-16xl flex flex-col gap-6">
               {/* STORE INFORMATION CARD */}
               <div className="relative bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-8">
                 {/* Header */}
@@ -121,9 +120,9 @@ export default function SettingPage() {
               </div>
     
               {/* SWITCH ROLE + SIGN OUT SECTION */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Switch Role */}
-                <div className="bg-white rounded-3xl shadow-[0_6px_16px_rgba(0,0,0,0.06)] p-5 border-t-4 border-[#9317ff]">
+                <div className="bg-white rounded-3xl shadow-[0_6px_16px_rgba(0,0,0,0.06)] p-5 border-l-4 border-[#9317ff]">
                   <div className="flex items-center gap-4">
                     <div className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[#C44DFF47] translate-x-[2px]">
                       <Icon icon="mdi:account-switch-outline" className="text-2xl text-[#9317ff]" />
@@ -143,7 +142,7 @@ export default function SettingPage() {
                 </div>
     
                 {/* Sign Out */}
-                <div className="bg-white rounded-3xl shadow-[0_6px_16px_rgba(0,0,0,0.06)] p-5 border-t-4 border-[#9317ff]">
+                <div className="bg-white rounded-3xl shadow-[0_6px_16px_rgba(0,0,0,0.06)] p-5 border-l-4 border-[#9317ff]">
                   <div className="flex items-center gap-4">
                     <div className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[#C44DFF47] translate-x-[2px]">
                       <Icon icon="mdi:logout-variant" className="text-2xl text-[#9317ff]" />
@@ -163,7 +162,6 @@ export default function SettingPage() {
                 </div>
               </div>
             </div>
-          </div>  
-        </div>
+          </div>
   );
 }

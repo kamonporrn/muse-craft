@@ -52,15 +52,26 @@ export default function ForgotPasswordForm({ onSignInClick, onSent }: Props) {
       <form onSubmit={submit} className="mt-8 space-y-6">
         <label className="block">
           <span className="mb-2 block text-sm text-gray-700">Email / Mobile Number</span>
-          <input
-            type="text"
-            inputMode="email"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="johnsondoe@nomail.com"
-            className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-gray-400"
-            aria-invalid={!valid}
-          />
+          {valid ? (
+            <input
+              type="text"
+              inputMode="email"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="johnsondoe@nomail.com"
+              className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-gray-400"
+            />
+          ) : (
+            <input
+              type="text"
+              inputMode="email"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="johnsondoe@nomail.com"
+              className="w-full rounded-2xl border border-red-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-red-400"
+              aria-invalid="true"
+            />
+          )}
         </label>
 
         <button

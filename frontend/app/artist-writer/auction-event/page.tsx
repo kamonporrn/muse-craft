@@ -1,8 +1,9 @@
 // app/artist-writer/auction-event/page.tsx
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { Search, Upload, ArrowRightCircle, CheckCircle2, Box, Clock, Check } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Search, Upload, ArrowRightCircle, CheckCircle2, Box, Clock, Check, FileText, Hourglass, CheckCircle, XCircle } from "lucide-react";
 
 // --- Mock Data ---
 const mockAuctions = [
@@ -21,6 +22,7 @@ interface RegistrationData {
   imageFile: File | null;
 }
 type ViewType = 'list' | 'register' | 'status';
+type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 const initialSubmittedData: RegistrationData = {
     productName: "N/A", category: "N/A", condition: "N/A", description: "Waiting for submission details.", startingPrice: 0, auctionDuration: "", imageFile: null
@@ -172,11 +174,10 @@ const RegistrationFormView = ({ onSubmissionSuccess }: { onSubmissionSuccess: (d
               <option value="">-- Select Category * --</option>
               <option value="painting">Painting</option>
               <option value="sculpture">Sculpture</option>
-              <option value="photography">Photography</option>
-              <option value="jewelry">Novel</option>
-              <option value="design">Design / Furniture</option>
-              <option value="nft">Digital Art (NFTs)</option>
-              <option value="other">Other Collectibles</option>
+              <option value="literature">Literature (E-book)</option>
+              <option value="graphic-design">Graphic Design</option>
+              <option value="crafts">Crafts</option>
+              <option value="digital-art">Digital Art</option>
             </select>
 
             <select name="condition" value={formData.condition} onChange={handleChange} className="block w-full rounded-md border-gray-300 shadow-sm p-3 border bg-white focus:border-purple-500 focus:ring-purple-500" aria-label="Product condition" required>
@@ -277,7 +278,13 @@ const StepIcon = ({ icon: Icon, label, status }: { icon: React.ElementType, labe
 };
 
 // --- Status View Component (Uses submitted product data) ---
-const StatusView = ({ product, approvalStep }: { product: RegistrationData, approvalStep: number }) => {
+const StatusView = ({ product, approvalStep, approvalStatus, onStatusChange }: { 
+  product: RegistrationData, 
+  approvalStep: number,
+  approvalStatus: ApprovalStatus,
+  onStatusChange: (status: ApprovalStatus) => void
+}) => {
+  const router = useRouter();
 
   const getStatus = (stepIndex: number) => {
     if (stepIndex < approvalStep) return 'completed';
@@ -286,25 +293,64 @@ const StatusView = ({ product, approvalStep }: { product: RegistrationData, appr
   };
 
   const steps = [
-    { label: "Confirm", icon: Box },
-    { label: "Verification", icon: Clock },
-    { label: "Complete", icon: Check },
+    { label: "Submit", icon: FileText },
+    { label: "Waiting for Approval", icon: Hourglass },
+    { label: approvalStatus === 'approved' ? "Approved" : approvalStatus === 'rejected' ? "Rejected" : "Approved/Rejected", icon: approvalStatus === 'approved' ? CheckCircle : approvalStatus === 'rejected' ? XCircle : Check },
   ];
+
+  // Simulate admin approval/rejection (ใน production จะมาจาก API)
+  useEffect(() => {
+    if (approvalStep === 2 && approvalStatus === 'pending') {
+      // Simulate admin decision after 3 seconds
+      const timer = setTimeout(() => {
+        // Random decision for demo (ใน production จะมาจาก admin)
+        const isApproved = Math.random() > 0.3; // 70% chance approved
+        const newStatus: ApprovalStatus = isApproved ? 'approved' : 'rejected';
+        onStatusChange(newStatus);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [approvalStep, approvalStatus, onStatusChange]);
+
+  // Handle redirect after approval decision
+  useEffect(() => {
+    if (approvalStep === 3) {
+      const timer = setTimeout(() => {
+        if (approvalStatus === 'approved') {
+          // Redirect to my-product with Live status
+          router.push('/artist-writer/my-product?status=Live');
+        } else if (approvalStatus === 'rejected') {
+          // Redirect to my-product with Violation status
+          router.push('/artist-writer/my-product?status=Violation');
+        }
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [approvalStep, approvalStatus, router]);
 
   return (
     <>
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            Waiting Auction for approval
+            Waiting for approval
         </h1>
         <p className="text-md text-gray-600 mb-8 text-center">
-            Your product is currently under review by our administration team.
+            {approvalStep === 1 && "Submitting your product"}
+            {approvalStep === 2 && approvalStatus === 'pending' && "Your product is currently under review by our administration team"}
+            {approvalStep === 3 && approvalStatus === 'approved' && "Your product has been approved"}
+            {approvalStep === 3 && approvalStatus === 'rejected' && "Your product has been rejected"}
         </p>
 
         {/* Progress Timeline */}
         <section className="flex justify-center items-center my-10 relative">
           
           <div className="absolute w-2/3 h-1 bg-gray-300 top-1/2 transform -translate-y-1/2 z-0">
-            <div className={`h-full bg-green-500 transition-all duration-500`} style={{ width: `${(approvalStep - 1) * 50}%` }}/>
+            <div className={`h-full transition-all duration-500 ${
+              approvalStatus === 'approved' ? 'bg-green-500' : 
+              approvalStatus === 'rejected' ? 'bg-red-500' : 
+              'bg-yellow-500'
+            }`} style={{ width: `${(approvalStep - 1) * 50}%` }}/>
           </div>
 
           {/* Steps */}
@@ -325,40 +371,37 @@ const StatusView = ({ product, approvalStep }: { product: RegistrationData, appr
                 </span>
             </div>
             
-            {/* FIX: Using DL structure for clean text layout */}
+            {/* Product Details */}
             <div className="text-gray-800 space-y-3">
-                <dl className="space-y-2">
-                    
-                    {/* Product Name (Primary Info) */}
-                    <div className="text-xl font-bold text-purple-700">
-                        {product.productName}
-                    </div>
-                    
-                    {/* Starting Price (Highlight) */}
-                    <div className="font-semibold text-gray-600 inline">
-                        {product.startingPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} THB
-                    </div>
-                    
-                    {/* Category */}
-                    <div className="text-sm">
-                        <dt className="font-semibold text-gray-600 inline">Category: </dt>
-                        <dd className="text-gray-800 inline">{product.category}</dd>
-                    </div>
+                {/* Product Name (Primary Info) */}
+                <div className="text-xl font-bold text-purple-700">
+                    {product.productName}
+                </div>
+                
+                {/* Starting Price (Highlight) */}
+                <div className="font-semibold text-gray-600 inline">
+                    {product.startingPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} THB
+                </div>
+                
+                {/* Category */}
+                <dl className="text-sm">
+                    <dt className="font-semibold text-gray-600 inline">Category: </dt>
+                    <dd className="text-gray-800 inline">{product.category}</dd>
+                </dl>
 
-                    {/* Condition */}
-                    <div className="text-sm">
-                        <dt className="font-semibold text-gray-600 inline">Condition: </dt>
-                        <dd className="text-gray-800 inline">{product.condition}</dd>
-                    </div>
+                {/* Condition */}
+                <dl className="text-sm">
+                    <dt className="font-semibold text-gray-600 inline">Condition: </dt>
+                    <dd className="text-gray-800 inline">{product.condition}</dd>
+                </dl>
 
-                    {/* Description (Separated block) */}
-                    <div className="text-sm">
-                        <dt className="font-semibold text-gray-600 inline">
-                            Description:</dt>
-                        <dd className="text-gray-800 inline">
-                            {product.description}
-                        </dd>
-                    </div>
+                {/* Description (Separated block) */}
+                <dl className="text-sm">
+                    <dt className="font-semibold text-gray-600 inline">
+                        Description:</dt>
+                    <dd className="text-gray-800 inline">
+                        {product.description}
+                    </dd>
                 </dl>
             </div>
           </div>
@@ -372,14 +415,76 @@ const StatusView = ({ product, approvalStep }: { product: RegistrationData, appr
 // =========================================================================
 
 export default function CombinedAuctionPage() {
+  const searchParams = useSearchParams();
   const [view, setView] = useState<ViewType>('list'); 
   const [submittedProduct, setSubmittedProduct] = useState<RegistrationData>(initialSubmittedData);
-  const [approvalStep, setApprovalStep] = useState(1); 
+  const [approvalStep, setApprovalStep] = useState(1);
+  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>('pending');
+
+  // ตรวจสอบ URL query parameter และ localStorage เมื่อ component mount
+  useEffect(() => {
+    const viewParam = searchParams.get('view');
+    if (viewParam === 'status') {
+      // ตรวจสอบว่ามีข้อมูลสินค้าใหม่จาก localStorage หรือไม่
+      const newProductData = localStorage.getItem('newProductData');
+      if (newProductData) {
+        try {
+          const productData = JSON.parse(newProductData);
+          // แปลงข้อมูลจาก add-new-product เป็น RegistrationData format
+          const registrationData: RegistrationData = {
+            productName: productData.productName || "N/A",
+            category: productData.category || "N/A",
+            condition: "New", // default condition
+            description: productData.description || "Waiting for submission details.",
+            startingPrice: parseFloat(productData.price?.replace(/[฿,]/g, '')) || 0,
+            auctionDuration: "",
+            imageFile: null, // File object cannot be stored in localStorage
+          };
+          setSubmittedProduct(registrationData);
+          setApprovalStep(1);
+          setApprovalStatus('pending');
+          setView('status');
+          // ลบข้อมูลจาก localStorage หลังจากใช้แล้ว
+          localStorage.removeItem('newProductData');
+        } catch (error) {
+          console.error('Error parsing product data:', error);
+        }
+      } else {
+        // ถ้าไม่มีข้อมูลใหม่ แต่มี view=status ให้แสดง status view ด้วยข้อมูล default
+        setView('status');
+      }
+    }
+  }, [searchParams]);
+
+  // Auto advance steps
+  useEffect(() => {
+    if (view === 'status' && approvalStep === 1) {
+      // Move to step 2 (รออนุมัติ) after 2 seconds
+      const timer = setTimeout(() => {
+        setApprovalStep(2);
+      }, 2000);
+      return () => clearTimeout(timer);
+    } else if (view === 'status' && approvalStep === 2 && approvalStatus === 'pending') {
+      // Wait for admin decision (simulated)
+      // In production, this would be a polling or websocket connection
+    } else if (view === 'status' && approvalStep === 2 && approvalStatus !== 'pending') {
+      // Move to step 3 after status is determined
+      const timer = setTimeout(() => {
+        setApprovalStep(3);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [view, approvalStep, approvalStatus]);
 
   const handleSubmissionSuccess = (data: RegistrationData) => {
     setSubmittedProduct(data);
-    setApprovalStep(1); // Reset to "Confirm" when a new product is submitted
+    setApprovalStep(1); // Reset to "ยื่นเรื่อง" when a new product is submitted
+    setApprovalStatus('pending');
     setView('status');
+  };
+
+  const handleStatusChange = (status: ApprovalStatus) => {
+    setApprovalStatus(status);
   };
 
   const renderContent = () => {
@@ -389,19 +494,17 @@ export default function CombinedAuctionPage() {
       case 'register':
         return <RegistrationFormView onSubmissionSuccess={handleSubmissionSuccess} />;
       case 'status':
-        return <StatusView product={submittedProduct} approvalStep={approvalStep} />;
+        return <StatusView product={submittedProduct} approvalStep={approvalStep} approvalStatus={approvalStatus} onStatusChange={handleStatusChange} />;
       default:
         return <div>Error: Invalid View</div>;
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#f6e9ff] text-gray-900">
-      <div className="flex justify-center py-10 px-4">
-        <div className="w-full max-w-4xl bg-white p-8 rounded-xl shadow-2xl">
+    <div className="flex justify-center">
+      <div className="w-full max-w-4xl bg-white p-8 rounded-xl shadow-2xl">
           {renderContent()}
-        </div>
       </div>
-    </main>
+    </div>
   );
 }
