@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
+import Link from "next/link";
 
 export default function ArtistWriterHome() {
   return (
@@ -16,13 +17,12 @@ export default function ArtistWriterHome() {
               </h2>
 
               {/* Edit button – ใส่ลิงก์ไปหน้า edit ได้ตามต้องการ */}
-              <button
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-[#9317ff] hover:bg-[#e097ff] text-white text-bold shadow-md transition"
-                // TODO: onClick / Link ไปหน้า edit
-              >
+              <Link
+                href = "/artist-writer/setting/edit"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-[#9317ff] hover:bg-[#e097ff] text-white text-bold shadow-md transition">
                 <Icon icon="mdi:pencil-outline" className="text-lg text-white" />
                 Edit
-              </button>
+              </Link>
             </div>
 
             {/* Avatar */}
