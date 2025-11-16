@@ -27,7 +27,7 @@ const ROLES: Role[] = [
     title: "Creator",
     desc: "Upload your works, set prices, or start auctions and track performance.",
     icon: Paintbrush,
-    primaryRoute: "/creator",
+    primaryRoute: "/artist-writer",
   },
   {
     id: "charity",
@@ -94,7 +94,6 @@ export default function RoleSelectPage() {
 
         <section
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center"
-          role="listbox"
           aria-label="Role options"
         >
           {ROLES.map((role) => {
@@ -108,8 +107,6 @@ export default function RoleSelectPage() {
                 className={`group relative w-full max-w-sm text-left rounded-2xl border bg-white p-5 shadow-sm transition
                 hover:shadow-md focus:outline-none focus:ring-4
                 ${active ? "border-purple-400 ring-4 ring-purple-200" : "border-gray-200"}`}
-                role="option"
-                aria-selected={active}
               >
                 {active && (
                   <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-1 text-xs font-semibold text-white">
