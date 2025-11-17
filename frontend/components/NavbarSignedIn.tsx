@@ -81,16 +81,7 @@ export default function NavbarSignedIn({
           <Search className="w-5 h-5" />
         </button>
       </form>
-
-      {/* Bell */}
-      <button
-        className="relative grid h-10 w-10 place-items-center rounded-full hover:bg-purple-100"
-        aria-label="Notifications"
-        onClick={onBellClick}
-      >
-        <Bell className="w-6 h-6 text-purple-700" />
-      </button>
-
+      
       {/* Cart */}
       <button
         className="relative grid h-10 w-10 place-items-center rounded-full hover:bg-purple-100"
