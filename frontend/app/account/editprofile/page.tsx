@@ -48,9 +48,6 @@ export default function EditProfilePage() {
             <Link href="/account/address" className="block rounded-md px-3 py-2 hover:bg-gray-50">
               Address Book
             </Link>
-            <Link href="/account/payments" className="block rounded-md px-3 py-2 hover:bg-gray-50">
-              My Payment Options
-            </Link>
           </nav>
 
           <h3 className="font-bold text-lg mt-5 mb-3">Manage My Order</h3>
