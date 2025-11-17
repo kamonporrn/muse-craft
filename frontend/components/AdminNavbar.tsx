@@ -45,7 +45,6 @@ export default function AdminNavbar({
         { href: "/admin", label: "Dashboard" },
         { href: "/admin/artworks", label: "Artworks" },
         { href: "/admin/users", label: "Users" },
-        { href: "/admin/auctions", label: "Auctions" },
       ],
     [tabs]
   );

@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, MouseEvent } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -16,65 +16,88 @@ import {
 import Navbar from "@/components/Navbar";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
-import { products, toSlug } from "@/lib/products";
-import { isSignedIn, getUserName } from "@/lib/auth";
+import { getProducts, toSlug, Product } from "@/lib/products";
+import { isSignedIn, getUserName } from "@/lib/users";
 
 export default function Home() {
   const router = useRouter();
 
+  // ดึงสินค้าจาก lib/products (เชื่อมเป็นแหล่งเดียวกับ Admin)
+  const allProducts: Product[] = useMemo(() => getProducts(), []);
+
   // Search state (shared to Navbar / NavbarSignedIn)
   const [search, setSearch] = useState("");
 
-  // Signed-in state for swapping navbar
+  // Signed-in state for swapping navbar + guard
   const [signed, setSigned] = useState(false);
   const [userName, setUserName] = useState("Muse User");
 
   useEffect(() => {
-    // read only on client
     setSigned(isSignedIn());
     setUserName(getUserName());
   }, []);
 
-  // Featured picks (ensure names match your data exactly)
+  /** ใช้สำหรับ guard ทุก action ที่ต้องการให้ Sign in ก่อน */
+  const requireSignIn = (e?: MouseEvent, next?: () => void) => {
+    if (!signed) {
+      if (e) e.preventDefault();
+      alert("กรุณา Sign in ก่อนเพื่อดูเนื้อหา");
+      router.push("/signin");
+      return;
+    }
+    next?.();
+  };
+
+  // Featured picks จาก products จริง
   const featuredNames = ["Mystery Way", "The Changeling Worlds", "Ocean Whisper"];
-  const featured = featuredNames
-    .map((name) => products.find((p) => p.name === name))
-    .filter(Boolean) as typeof products;
+  const featured: Product[] = useMemo(
+    () =>
+      featuredNames
+        .map((name) => allProducts.find((p) => p.name === name))
+        .filter(Boolean) as Product[],
+    [allProducts]
+  );
 
   const [active, setActive] = useState(0);
 
-  // Auto-rotate every 3s
+  // Auto-rotate every 7s
   useEffect(() => {
     if (featured.length < 2) return;
-    const id = setInterval(() => {
-      setActive((prev) => (prev + 1) % featured.length);
-    }, 7000);
+    const id = setInterval(
+      () => setActive((prev) => (prev + 1) % featured.length),
+      7000
+    );
     return () => clearInterval(id);
   }, [featured.length]);
 
   // Best sellers (filter by search, sort by rating desc, tie-break price desc)
   const bestSellers = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = products.filter((p) =>
+    let list = allProducts.filter((p) =>
       q ? p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q) : true
     );
-    list = list.sort((a, b) => (b.rating - a.rating) || (b.price - a.price));
-    return list.slice(0, 4); // show top 4
-  }, [search]);
+    list = list.sort((a, b) => b.rating - a.rating || b.price - a.price);
+    return list.slice(0, 4);
+  }, [search, allProducts]);
 
   // Badge classes keyed by category TITLE
   const categoryBadge: Record<string, string> = {
-    "Painting": "bg-yellow-100 text-yellow-800",
-    "Sculpture": "bg-indigo-100 text-indigo-800",
+    Painting: "bg-yellow-100 text-yellow-800",
+    Sculpture: "bg-indigo-100 text-indigo-800",
     "Literature (E-book)": "bg-green-100 text-green-800",
     "Graphic Design": "bg-pink-100 text-pink-800",
-    "Crafts": "bg-amber-100 text-amber-800",
+    Crafts: "bg-amber-100 text-amber-800",
     "Digital Art": "bg-blue-100 text-blue-800",
   };
 
   const onSearchSubmit = (q: string) => {
     const qq = q.trim();
     if (!qq) return;
+    if (!signed) {
+      alert("กรุณา Sign in ก่อนเพื่อค้นหาและดูเนื้อหา");
+      router.push("/signin");
+      return;
+    }
     router.push(`/search?q=${encodeURIComponent(qq)}`);
   };
 
@@ -88,8 +111,22 @@ export default function Home() {
           onSearchSubmit={onSearchSubmit}
           user={{ name: userName, avatarUrl: "/avatar.jpeg" }}
           cartCount={"10+"}
-          onCartClick={() => router.push("/cart")}
-          onBellClick={() => console.log("notifications")}
+          onCartClick={() => {
+            if (!signed) {
+              alert("กรุณา Sign in ก่อนเพื่อดูตะกร้าสินค้า");
+              router.push("/signin");
+              return;
+            }
+            router.push("/cart");
+          }}
+          onBellClick={() => {
+            if (!signed) {
+              alert("กรุณา Sign in ก่อนเพื่อดูการแจ้งเตือน");
+              router.push("/signin");
+              return;
+            }
+            console.log("notifications");
+          }}
         />
       ) : (
         <Navbar
@@ -106,7 +143,7 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="relative w-full max-w-6xl mx-auto h-[400px] md:h-[420px] overflow-hidden">
+        <div className="relative mx-auto h-[400px] w-full max-w-6xl overflow-hidden md:h-[420px]">
           <div className="absolute inset-0 flex items-center justify-center">
             {featured.map((item, i) => {
               const n = featured.length;
@@ -116,18 +153,21 @@ export default function Home() {
               const opacity = diff === 0 ? 1 : 0.6;
               const zIndex = diff === 0 ? 30 : 20;
               const blur = diff === 0 ? "backdrop-blur-0" : "backdrop-blur-[1px]";
+              const slug = toSlug(item.name);
 
               return (
                 <motion.div
                   key={item.name}
-                  className={`absolute w-[85%] md:w-[360px] ${blur} cursor-pointer`}
+                  className={`absolute w-[85%] cursor-pointer md:w-[360px] ${blur}`}
                   animate={{ x, scale, opacity }}
                   transition={{ type: "spring", stiffness: 260, damping: 25 }}
                   style={{ zIndex }}
-                  onClick={() => router.push(`/product/${toSlug(item.name)}`)}
+                  onClick={(e) =>
+                    requireSignIn(e, () => router.push(`/product/${slug}`))
+                  }
                 >
-                  <div className="bg-purple-50 rounded-2xl p-4 text-center shadow-sm border border-purple-100">
-                    <p className="text-xs md:text-sm bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full inline-block mb-2">
+                  <div className="rounded-2xl border border-purple-100 bg-purple-50 p-4 text-center shadow-sm">
+                    <p className="mb-2 inline-block rounded-full bg-yellow-200 px-2 py-1 text-xs text-yellow-800 md:text-sm">
                       {item.category}
                     </p>
                     <Image
@@ -135,16 +175,15 @@ export default function Home() {
                       alt={item.name}
                       width={360}
                       height={220}
-                      className="mx-auto rounded-lg object-cover w-full h-[200px] md:h-[220px]"
+                      className="mx-auto h-[200px] w-full rounded-lg object-cover md:h-[220px]"
                     />
                     <h3 className="mt-4 text-lg font-semibold">{item.name}</h3>
                     <p className="text-sm text-gray-500">{item.author}</p>
                     <button
-                      className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/product/${toSlug(item.name)}`);
-                      }}
+                      className="mt-3 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700"
+                      onClick={(e) =>
+                        requireSignIn(e, () => router.push(`/product/${slug}`))
+                      }
                     >
                       More Detail
                     </button>
@@ -172,28 +211,60 @@ export default function Home() {
 
       {/* ===== Shop by Category ===== */}
       <section className="px-8 py-10 text-center">
-        <h2 className="text-2xl font-bold mb-6">Shop by Category</h2>
+        <h2 className="mb-6 text-2xl font-bold">Shop by Category</h2>
 
         {(() => {
           const categories = [
-            { key: "painting", title: "Painting", desc: "Oil, watercolor, acrylic", Icon: Palette },
-            { key: "sculpture", title: "Sculpture", desc: "Clay, wood, stone carving", Icon: Shapes },
-            { key: "literature", title: "Literature (E-book)", desc: "Novels, poetry, short stories", Icon: BookOpen },
-            { key: "graphic-design", title: "Graphic Design", desc: "Branding, posters, layouts", Icon: PenTool },
-            { key: "crafts", title: "Crafts", desc: "Weaving, ceramics, jewelry, mobiles", Icon: Scissors },
-            { key: "digital-art", title: "Digital Art", desc: "Illustrations & concept art", Icon: ImageIcon },
+            {
+              key: "painting",
+              title: "Painting",
+              desc: "Oil, watercolor, acrylic",
+              Icon: Palette,
+            },
+            {
+              key: "sculpture",
+              title: "Sculpture",
+              desc: "Clay, wood, stone carving",
+              Icon: Shapes,
+            },
+            {
+              key: "literature",
+              title: "Literature (E-book)",
+              desc: "Novels, poetry, short stories",
+              Icon: BookOpen,
+            },
+            {
+              key: "graphic-design",
+              title: "Graphic Design",
+              desc: "Branding, posters, layouts",
+              Icon: PenTool,
+            },
+            {
+              key: "crafts",
+              title: "Crafts",
+              desc: "Weaving, ceramics, jewelry, mobiles",
+              Icon: Scissors,
+            },
+            {
+              key: "digital-art",
+              title: "Digital Art",
+              desc: "Illustrations & concept art",
+              Icon: ImageIcon,
+            },
           ];
 
           return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
               {categories.map(({ key, title, desc, Icon }) => (
                 <div
                   key={key}
-                  className="p-6 bg-purple-50 rounded-xl hover:shadow-md transition flex flex-col items-center group cursor-pointer"
-                  onClick={() => router.push(`/category/${key}`)}
+                  className="group flex cursor-pointer flex-col items-center rounded-xl bg-purple-50 p-6 transition hover:shadow-md"
+                  onClick={(e) =>
+                    requireSignIn(e, () => router.push(`/category/${key}`))
+                  }
                 >
-                  <Icon className="w-10 h-10 text-purple-600 mb-3 group-hover:scale-110 transition-transform" />
-                  <h3 className="font-semibold text-lg">{title}</h3>
+                  <Icon className="mb-3 h-10 w-10 text-purple-600 transition-transform group-hover:scale-110" />
+                  <h3 className="text-lg font-semibold">{title}</h3>
                   <p className="text-gray-500">{desc}</p>
                 </div>
               ))}
@@ -204,41 +275,52 @@ export default function Home() {
 
       {/* ===== Best Seller ===== */}
       <section className="px-8 py-10">
-        <h2 className="text-2xl font-bold mb-6">Best Seller</h2>
+        <h2 className="mb-6 text-2xl font-bold">Best Seller</h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {bestSellers.map((item) => (
-            <Link
-              key={item.name}
-              href={`/product/${toSlug(item.name)}`}
-              className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition block"
-            >
-              <div className="relative">
-                <Image
-                  src={item.img}
-                  alt={item.name}
-                  width={300}
-                  height={200}
-                  className="w-full h-48 object-cover"
-                />
-                {/* Category badge on image */}
-                <span
-                  className={`absolute left-3 top-3 text-xs font-semibold px-2 py-1 rounded-full
-                    ${categoryBadge[item.category] ?? "bg-gray-100 text-gray-800"}`}
-                >
-                  {item.category}
-                </span>
-              </div>
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          {bestSellers.map((item) => {
+            const slug = toSlug(item.name);
+            return (
+              <Link
+                key={item.name}
+                href={`/product/${slug}`}
+                className="block overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md"
+                onClick={(e) =>
+                  requireSignIn(e, () => router.push(`/product/${slug}`))
+                }
+              >
+                <div className="relative">
+                  <Image
+                    src={item.img}
+                    alt={item.name}
+                    width={300}
+                    height={200}
+                    className="h-48 w-full object-cover"
+                  />
+                  {/* Category badge on image */}
+                  <span
+                    className={`absolute left-3 top-3 rounded-full px-2 py-1 text-xs font-semibold ${
+                      categoryBadge[item.category] ??
+                      "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {item.category}
+                  </span>
+                </div>
 
-              <div className="p-4">
-                <h3 className="font-semibold">{item.name}</h3>
-                <p className="text-gray-500">{item.author}</p>
-                <p className="text-purple-600 font-semibold mt-2">
-                  {item.price.toLocaleString("en-US", { minimumFractionDigits: 2 })} ฿
-                </p>
-              </div>
-            </Link>
-          ))}
+                <div className="p-4">
+                  <h3 className="font-semibold">{item.name}</h3>
+                  <p className="text-gray-500">{item.author}</p>
+                  <p className="mt-2 font-semibold text-purple-600">
+                    {item.price.toLocaleString("en-US", {
+                      minimumFractionDigits: 2,
+                    })}{" "}
+                    ฿
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
     </div>

@@ -7,80 +7,34 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import AdminNavbar from "@/components/AdminNavbar";
 
-/* ---------- Types ---------- */
-type Role = "Creator" | "Collector" | "Admin" | "Charity";
-type Status = "Normal" | "Suspended" | "Deleted";
-
-type UserRow = {
-  id: string;
-  accountId: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  role: Role;
-  status: Status;
-};
-
-/* ---------- Mock data ---------- */
-const SEED: UserRow[] = [
-  {
-    id: "u1",
-    accountId: "#CRE-001",
-    name: "Olivia Chen",
-    email: "creator@email.com",
-    role: "Creator",
-    status: "Normal",
-    avatar: "/img/avatars/a1.jpg",
-  },
-  {
-    id: "u2",
-    accountId: "#CRE-002",
-    name: "Mason Park",
-    email: "creator2@email.com",
-    role: "Creator",
-    status: "Suspended",
-    avatar: "/img/avatars/a2.jpg",
-  },
-  {
-    id: "u3",
-    accountId: "#COL-001",
-    name: "Noah Brown",
-    email: "collector@email.com",
-    role: "Collector",
-    status: "Normal",
-    avatar: "/img/avatars/a3.jpg",
-  },
-  {
-    id: "u4",
-    accountId: "#AD-001",
-    name: "Admin01",
-    email: "admin01@email.com",
-    role: "Admin",
-    status: "Normal",
-    avatar: "/img/avatars/a4.jpg",
-  },
-  {
-    id: "u5",
-    accountId: "#CHA-001",
-    name: "Charity",
-    email: "charity@email.com",
-    role: "Charity", // 👈 ระบุบทบาท Charity ชัดเจน
-    status: "Normal",
-    avatar: "/img/avatars/a5.jpg",
-  },
-];
+// ดึง type + ฟังก์ชันจาก lib/users
+import {
+  User,
+  Role,
+  Status,
+  getUsers,
+  suspendUser,
+  restoreUser,
+  deleteUserSoft,
+} from "@/lib/users";
 
 /* ---------- Helpers ---------- */
 const badge = (status: Status) => {
-  if (status === "Normal") return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
-  if (status === "Suspended") return "bg-rose-50 text-rose-700 ring-1 ring-rose-200";
+  if (status === "Normal")
+    return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200";
+  if (status === "Suspended")
+    return "bg-rose-50 text-rose-700 ring-1 ring-rose-200";
   return "bg-gray-50 text-gray-500 ring-1 ring-gray-200";
 };
+
+// filter role ใช้เฉพาะ Creator / Collector / Admin (ตัด Charity ออก)
+type RoleFilter = "All" | "Creator" | "Collector" | "Admin";
 
 export default function AdminUsersPage() {
   // ===== Guard: admin เท่านั้น =====
   const [ok, setOk] = useState(false);
   const [userName, setUserName] = useState("Admin01");
+
   useEffect(() => {
     try {
       const role = localStorage.getItem("musecraft.role");
@@ -93,11 +47,18 @@ export default function AdminUsersPage() {
     }
   }, []);
 
-  const [rows, setRows] = useState<UserRow[]>(SEED);
+  // users จาก lib/users แต่ *ไม่เอา Charity มาโชว์ในหน้านี้*
+  const [rows, setRows] = useState<User[]>([]);
+
+  useEffect(() => {
+  if (!ok) return;               // รอให้ guard เช็คเสร็จก่อน
+  const list = getUsers();       // ดึงทุก user จาก lib/users
+  setRows(list);
+}, [ok]);
 
   /* --------- Filters & search --------- */
   const [q, setQ] = useState("");
-  const [fRole, setFRole] = useState<"All" | Role>("All");
+  const [fRole, setFRole] = useState<RoleFilter>("All");
   const [fStatus, setFStatus] = useState<"All" | Status>("All");
 
   /* --------- Pagination --------- */
@@ -120,30 +81,39 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const current = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  /* --------- Actions --------- */
+  /* --------- Actions (เชื่อมกับ lib/users/mutations.ts) --------- */
   const toggleSuspend = (id: string) => {
-    setRows((arr) =>
-      arr.map((u) =>
-        u.id === id
-          ? { ...u, status: u.status === "Suspended" ? "Normal" : "Suspended" }
-          : u
-      )
-    );
+    setRows((prev) => {
+      const user = prev.find((u) => u.id === id);
+      if (!user) return prev;
+
+      if (user.status === "Suspended") {
+        restoreUser(id); // อัปเดตใน localStorage
+        return prev.map((u) =>
+          u.id === id ? { ...u, status: "Normal" } : u
+        );
+      } else {
+        suspendUser(id);
+        return prev.map((u) =>
+          u.id === id ? { ...u, status: "Suspended" } : u
+        );
+      }
+    });
   };
 
   const deleteAccount = (id: string) => {
-    setRows((arr) =>
-      arr.map((u) => (u.id === id ? { ...u, status: "Deleted" } : u))
+    deleteUserSoft(id); // อัปเดตใน localStorage
+    setRows((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, status: "Deleted" } : u))
     );
   };
 
-  // ปุ่มหลักตามบทบาท (ตามภาพที่อธิบาย)
-  const primaryAction = (u: UserRow) => {
+  // ปุ่มหลักตามบทบาท — ไม่มี Charity แล้ว
+  const primaryAction = (u: User) => {
     switch (u.role) {
       case "Creator":
         return { href: `/admin/users/${u.id}/artworks`, label: "View Artworks" };
       case "Collector":
-      case "Charity":
         return { href: `/admin/users/${u.id}`, label: "View Account" };
       case "Admin":
         return { href: `/admin/users/${u.id}/log`, label: "View Log" };
@@ -172,26 +142,29 @@ export default function AdminUsersPage() {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
             {/* Role */}
             <div>
-              <div className="mb-1 text-sm font-semibold text-gray-700">Roles of Users</div>
+              <div className="mb-1 text-sm font-semibold text-gray-700">
+                Roles of Users
+              </div>
               <select
                 value={fRole}
                 onChange={(e) => {
                   setPage(1);
-                  setFRole(e.target.value as any);
+                  setFRole(e.target.value as RoleFilter);
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
               >
-                <option>All</option>
-                <option>Creator</option>
-                <option>Collector</option>
-                <option>Admin</option>
-                <option>Charity</option>
+                <option value="All">All</option>
+                <option value="Creator">Creator</option>
+                <option value="Collector">Collector</option>
+                <option value="Admin">Admin</option>
               </select>
             </div>
 
             {/* Status */}
             <div>
-              <div className="mb-1 text-sm font-semibold text-gray-700">Status</div>
+              <div className="mb-1 text-sm font-semibold text-gray-700">
+                Status
+              </div>
               <select
                 value={fStatus}
                 onChange={(e) => {
@@ -200,16 +173,18 @@ export default function AdminUsersPage() {
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
               >
-                <option>All</option>
-                <option>Normal</option>
-                <option>Suspended</option>
-                <option>Deleted</option>
+                <option value="All">All</option>
+                <option value="Normal">Normal</option>
+                <option value="Suspended">Suspended</option>
+                <option value="Deleted">Deleted</option>
               </select>
             </div>
 
             {/* Search */}
             <div className="md:col-span-2">
-              <div className="mb-1 text-sm font-semibold text-gray-700">Search</div>
+              <div className="mb-1 text-sm font-semibold text-gray-700">
+                Search
+              </div>
               <div className="flex items-center rounded-full border border-gray-200 bg-white px-3 py-2.5 focus-within:border-purple-400">
                 <Search className="mr-2 h-4 w-4 text-purple-600" />
                 <input
@@ -256,13 +231,19 @@ export default function AdminUsersPage() {
                           />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{u.name}</div>
-                          <div className="text-xs text-gray-500">{u.email}</div>
+                          <div className="font-medium text-gray-900">
+                            {u.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {u.email}
+                          </div>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 text-gray-700">{u.accountId}</td>
+                    <td className="px-4 py-3 text-gray-700">
+                      {u.accountId}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
                         {u.role}
@@ -270,7 +251,11 @@ export default function AdminUsersPage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(u.status)}`}>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge(
+                          u.status
+                        )}`}
+                      >
                         {u.status}
                       </span>
                     </td>
@@ -278,7 +263,7 @@ export default function AdminUsersPage() {
                     {/* Actions */}
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-2">
-                        {/* Primary view button ตามบทบาท */}
+                        {/* Primary view */}
                         <Link
                           href={pa.href}
                           className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50"
@@ -315,7 +300,10 @@ export default function AdminUsersPage() {
 
               {current.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-gray-600">
+                  <td
+                    colSpan={5}
+                    className="px-4 py-10 text-center text-gray-600"
+                  >
                     No users match your filters.
                   </td>
                 </tr>
@@ -328,7 +316,11 @@ export default function AdminUsersPage() {
             <div>
               Showing{" "}
               <span className="font-medium">
-                {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)}
+                {filtered.length === 0
+                  ? 0
+                  : (page - 1) * PAGE_SIZE + 1}
+                –
+                {Math.min(page * PAGE_SIZE, filtered.length)}
               </span>{" "}
               of <span className="font-medium">{filtered.length}</span> results
             </div>
