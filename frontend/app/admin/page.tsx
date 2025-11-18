@@ -10,7 +10,6 @@ import { ensureCreatorUsersFromProducts } from "@/lib/users/seedCreatorsFromProd
 const pink   = "#ec4899";   // Artworks
 const green  = "#10b981";   // Creators
 const orange = "#f59e0b";   // Collectors
-const purple = "#8b5cf6";   // Auctions
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -77,22 +76,48 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  /** ตัวอย่างข้อมูล “รายวัน 7 วันย้อนหลัง” ต่อสถิติ
-      - ใส่เป็น cumulative ก็ได้ (ยอดรวมถึงวันนั้น) หรือ daily count ก็ได้
-      - ในเดโมนี้ใช้ “ยอดรวมต่อวัน” แล้วคำนวณ Δ = last - first */
-  const weekly = {
-    artworks:  [112, 114, 118, 121, 123, 125, 127],
-    creators:  [30,  31,  31,  33,  34,  35,  36],
-    collectors:[40,  41,  41,  43,  44,  44,  45],
-    auctions:  [4,   4,   5,   5,   5,   5,   5],
-  };
+  // ===== ดึงข้อมูลจริงจาก lib =====
+  const [totals, setTotals] = useState({
+    artworks: 0,
+    creators: 0,
+    collectors: 0,
+  });
+
+  useEffect(() => {
+    if (!ok) return;
+
+    (async () => {
+      // 1) ensure Creator จาก products ถูกสร้างเป็น user role "Creator" แล้ว
+      ensureCreatorUsersFromProducts();
+
+      // 2) users จาก localStorage ผ่าน lib/users
+      const allUsers = getUsers();
+      const creators = allUsers.filter((u) => u.role === "Creator").length;
+      const collectors = allUsers.filter((u) => u.role === "Collector").length;
+
+      // 3) artworks จาก lib/products ผ่าน getProducts()
+      const allProducts = await getProducts();
+      const artworks = allProducts.length;
+
+      setTotals({ artworks, creators, collectors });
+    })();
+  }, [ok]);
+
+  // weekly series ผูกกับ total จริง (ปลายสัปดาห์ = ค่าปัจจุบัน)
+  const weekly = useMemo(
+    () => ({
+      artworks: buildWeeklyFromTotal(totals.artworks),
+      creators: buildWeeklyFromTotal(totals.creators),
+      collectors: buildWeeklyFromTotal(totals.collectors),
+    }),
+    [totals]
+  );
 
   // ค่าปัจจุบัน = วันสุดท้ายของสัปดาห์ | Δ = last - first
   const nowStats = [
     { key: "artworks",   label: "Total Artworks",   color: pink,   value: weekly.artworks.at(-1)!,   delta: weekly.artworks.at(-1)!   - weekly.artworks[0] },
     { key: "creators",   label: "Total Creators",   color: green,  value: weekly.creators.at(-1)!,   delta: weekly.creators.at(-1)!   - weekly.creators[0] },
     { key: "collectors", label: "Total Collectors", color: orange, value: weekly.collectors.at(-1)!, delta: weekly.collectors.at(-1)! - weekly.collectors[0] },
-    { key: "auctions",   label: "Ongoing Auctions", color: purple, value: weekly.auctions.at(-1)!,   delta: weekly.auctions.at(-1)!   - weekly.auctions[0] },
   ];
 
   /** เตรียมซีรีส์กราฟ */
@@ -100,7 +125,6 @@ export default function AdminDashboard() {
     { name: "Artworks",   color: pink,   data: weekly.artworks },
     { name: "Creators",   color: green,  data: weekly.creators },
     { name: "Collectors", color: orange, data: weekly.collectors },
-    { name: "Auctions",   color: purple, data: weekly.auctions },
   ];
 
   // หา min/max เพื่อสเกลกราฟพอดี

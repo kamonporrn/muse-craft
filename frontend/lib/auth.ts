@@ -1,4 +1,4 @@
 // lib/auth.ts
-// Re-export auth functions from lib/users/auth for backward compatibility
-export { isSignedIn, getUserName, getRole, setSessionFromUser, clearSession, validateUser } from "./users/auth";
+// Re-export auth functions from lib/users/auth
+export { isSignedIn, getUserName, getRole, validateUser, setSessionFromUser, clearSession } from "./users/auth";
 

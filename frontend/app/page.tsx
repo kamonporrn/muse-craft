@@ -72,7 +72,7 @@ export default function Home() {
     let list = products.filter((p) =>
       q ? p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q) : true
     );
-    list = list.sort((a, b) => (b.rating - a.rating) || (b.price - a.price));
+    list = list.sort((a, b) => ((b.rating ?? 0) - (a.rating ?? 0)) || (b.price - a.price));
     return list.slice(0, 4); // show top 4
   }, [products, search]);
 

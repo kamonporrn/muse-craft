@@ -35,7 +35,7 @@ export default function CreatorArtworksPage() {
 
   if (!ok) return <div className="grid min-h-screen place-items-center bg-[#efe2fb]">Checking permission…</div>;
 
-  if (!user || (user.role !== "Collector" && user.role !== "Charity")) {
+  if (!user || user.role !== "Collector") {
     return (
       <div className="min-h-screen bg-[#efe2fb]">
         <AdminNavbar userName={adminName} />
