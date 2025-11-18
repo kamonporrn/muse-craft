@@ -1,11 +1,12 @@
 // app/cart/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import { Trash2, Heart, CheckSquare, Square } from "lucide-react";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
+import { isSignedIn } from "@/lib/auth";
 
 type CartItem = {
   id: string;
@@ -60,6 +61,15 @@ export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>(MOCK_ITEMS);
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<null | { code: string; discount: number }>(null);
+
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!isSignedIn()) {
+        router.push("/signin");
+      }
+    }
+  }, [router]);
 
   // derived lists
   const available = items.filter((i) => i.available);

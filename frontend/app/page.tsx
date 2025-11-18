@@ -16,7 +16,7 @@ import {
 import Navbar from "@/components/Navbar";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
-import { products, toSlug } from "@/lib/products";
+import { getProducts, toSlug, type Product } from "@/lib/products";
 import { isSignedIn, getUserName } from "@/lib/auth";
 
 export default function Home() {
@@ -29,17 +29,30 @@ export default function Home() {
   const [signed, setSigned] = useState(false);
   const [userName, setUserName] = useState("Muse User");
 
+  // Products state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     // read only on client
     setSigned(isSignedIn());
     setUserName(getUserName());
+
+    // Fetch products from API
+    getProducts().then((data) => {
+      setProducts(data);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Failed to load products:', error);
+      setLoading(false);
+    });
   }, []);
 
-  // Featured picks (ensure names match your data exactly)
-  const featuredNames = ["Mystery Way", "The Changeling Worlds", "Ocean Whisper"];
-  const featured = featuredNames
-    .map((name) => products.find((p) => p.name === name))
-    .filter(Boolean) as typeof products;
+  // Featured picks - only approved products from API (no hardcoded names)
+  const featured = useMemo(() => {
+    const approved = products.filter((p) => !p.status || p.status === "approved");
+    return approved.slice(0, 3); // Show first 3 approved products
+  }, [products]);
 
   const [active, setActive] = useState(0);
 
@@ -52,15 +65,23 @@ export default function Home() {
     return () => clearInterval(id);
   }, [featured.length]);
 
-  // Best sellers (filter by search, sort by rating desc, tie-break price desc)
+  // Best sellers (filter by search, only approved products, sort by price desc)
   const bestSellers = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = products.filter((p) =>
-      q ? p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q) : true
-    );
-    list = list.sort((a, b) => (b.rating - a.rating) || (b.price - a.price));
+    let list = products.filter((p) => {
+      // Only show approved products (or products without status for backward compatibility)
+      const isApproved = !p.status || p.status === "approved";
+      if (!isApproved) return false;
+      
+      // Filter by search query if provided
+      if (q) {
+        return p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q);
+      }
+      return true;
+    });
+    list = list.sort((a, b) => b.price - a.price);
     return list.slice(0, 4); // show top 4
-  }, [search]);
+  }, [search, products]);
 
   // Badge classes keyed by category TITLE
   const categoryBadge: Record<string, string> = {
@@ -115,15 +136,15 @@ export default function Home() {
               const scale = diff === 0 ? 1 : 0.75;
               const opacity = diff === 0 ? 1 : 0.6;
               const zIndex = diff === 0 ? 30 : 20;
-              const blur = diff === 0 ? "backdrop-blur-0" : "backdrop-blur-[1px]";
+              const blurStyle = diff === 0 ? { backdropFilter: 'none', WebkitBackdropFilter: 'none' } : { backdropFilter: 'blur(1px)', WebkitBackdropFilter: 'blur(1px)' };
 
               return (
                 <motion.div
-                  key={item.name}
-                  className={`absolute w-[85%] md:w-[360px] ${blur} cursor-pointer`}
+                  key={item.id || item.name}
+                  className="absolute w-[85%] md:w-[360px] cursor-pointer"
                   animate={{ x, scale, opacity }}
                   transition={{ type: "spring", stiffness: 260, damping: 25 }}
-                  style={{ zIndex }}
+                  style={{ zIndex, ...blurStyle }}
                   onClick={() => router.push(`/product/${toSlug(item.name)}`)}
                 >
                   <div className="bg-purple-50 rounded-2xl p-4 text-center shadow-sm border border-purple-100">
@@ -143,7 +164,12 @@ export default function Home() {
                       className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
                       onClick={(e) => {
                         e.stopPropagation();
-                        router.push(`/product/${toSlug(item.name)}`);
+                        // Check if user is signed in
+                        if (!signed) {
+                          router.push("/signin");
+                        } else {
+                          router.push(`/product/${toSlug(item.name)}`);
+                        }
                       }}
                     >
                       More Detail
@@ -190,7 +216,14 @@ export default function Home() {
                 <div
                   key={key}
                   className="p-6 bg-purple-50 rounded-xl hover:shadow-md transition flex flex-col items-center group cursor-pointer"
-                  onClick={() => router.push(`/category/${key}`)}
+                  onClick={() => {
+                    // Check if user is signed in
+                    if (!signed) {
+                      router.push("/signin");
+                    } else {
+                      router.push(`/category/${key}`);
+                    }
+                  }}
                 >
                   <Icon className="w-10 h-10 text-purple-600 mb-3 group-hover:scale-110 transition-transform" />
                   <h3 className="font-semibold text-lg">{title}</h3>
@@ -208,19 +241,34 @@ export default function Home() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {bestSellers.map((item) => (
-            <Link
-              key={item.name}
-              href={`/product/${toSlug(item.name)}`}
-              className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition block"
+            <div
+              key={item.id || item.name}
+              onClick={() => {
+                // Check if user is signed in
+                if (!signed) {
+                  router.push("/signin");
+                } else {
+                  router.push(`/product/${toSlug(item.name)}`);
+                }
+              }}
+              className="cursor-pointer border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition block"
             >
               <div className="relative">
-                <Image
-                  src={item.img}
-                  alt={item.name}
-                  width={300}
-                  height={200}
-                  className="w-full h-48 object-cover"
-                />
+                {item.img && item.img.startsWith('data:') ? (
+                  <img
+                    src={item.img}
+                    alt={item.name}
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={item.img}
+                    alt={item.name}
+                    width={300}
+                    height={200}
+                    className="w-full h-48 object-cover"
+                  />
+                )}
                 {/* Category badge on image */}
                 <span
                   className={`absolute left-3 top-3 text-xs font-semibold px-2 py-1 rounded-full
@@ -237,7 +285,7 @@ export default function Home() {
                   {item.price.toLocaleString("en-US", { minimumFractionDigits: 2 })} ฿
                 </p>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </section>

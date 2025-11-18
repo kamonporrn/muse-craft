@@ -1,9 +1,49 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
+import { fetchCurrentUser, type ApiUser } from "@/lib/api";
 
 export default function SettingPage() {
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await fetchCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
+
+  // Format phone number for display
+  const formatPhone = (phone?: string) => {
+    if (!phone) return "N/A";
+    if (phone.length === 10) {
+      return `${phone.slice(0, 3)} - ${phone.slice(3, 7)}-${phone.slice(7)}`;
+    }
+    return phone;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex w-full justify-center">
+        <div className="w-full max-w-16xl flex flex-col gap-6">
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <div className="text-center text-gray-500">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
         <div className="flex w-full justify-center">
             {/* แก้แค่ max-w-5xl -> max-w-6xl */}
@@ -32,7 +72,7 @@ export default function SettingPage() {
                     <div className="w-28 h-28 rounded-full overflow-hidden shadow-md border-4 border-white">
                       {/* รูปร้านค้า */}
                       <img
-                        src="/images/store-avatar-placeholder.jpg"
+                        src={user?.avatar || "/images/store-avatar-placeholder.jpg"}
                         alt="Store avatar"
                         className="w-full h-full object-cover"
                       />
@@ -52,7 +92,7 @@ export default function SettingPage() {
                         Store&apos;s Name
                       </span>
                       <span className="text-sm md:text-base font-semibold text-gray-800">
-                        Happy Story
+                        {user?.storeName || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -67,7 +107,7 @@ export default function SettingPage() {
                         Owner Name
                       </span>
                       <span className="text-sm md:text-base font-semibold text-gray-800">
-                        Sophia Mitchell
+                        {user?.name || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -82,7 +122,7 @@ export default function SettingPage() {
                         Address
                       </span>
                       <span className="text-sm md:text-base font-semibold text-gray-800">
-                        123 Chiang Rai, Thailand, 71000
+                        {user?.address || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -97,7 +137,7 @@ export default function SettingPage() {
                         Email
                       </span>
                       <span className="text-sm md:text-base font-semibold text-gray-800">
-                        @happy_story.com
+                        {user?.email || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -112,7 +152,7 @@ export default function SettingPage() {
                         Phone
                       </span>
                       <span className="text-sm md:text-base font-semibold text-gray-800">
-                        098 - 7654-321
+                        {formatPhone(user?.phone)}
                       </span>
                     </div>
                   </div>
@@ -134,7 +174,12 @@ export default function SettingPage() {
                       <span className="text-xs text-gray-500">
                         Currently: Seller
                       </span>
-                      <button className="mt-2 text-xs font-medium text-[#9317ff] hover:underline">
+                      <button 
+                        onClick={() => {
+                          window.location.href = '/role';
+                        }}
+                        className="mt-2 text-xs font-medium text-[#9317ff] hover:underline"
+                      >
                         Switching account &gt;
                       </button>
                     </div>
@@ -154,7 +199,15 @@ export default function SettingPage() {
                       <span className="text-xs text-gray-500">
                         Log out of your account safely
                       </span>
-                      <button className="mt-2 text-xs font-medium text-[#9317ff] hover:underline">
+                      <button 
+                        onClick={() => {
+                          // Clear all localStorage
+                          localStorage.clear();
+                          // Redirect to sign in
+                          window.location.href = '/signin';
+                        }}
+                        className="mt-2 text-xs font-medium text-[#9317ff] hover:underline"
+                      >
                         Click to sign out &gt;
                       </button>
                     </div>

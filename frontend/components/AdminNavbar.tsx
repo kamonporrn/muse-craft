@@ -25,18 +25,43 @@ export default function AdminNavbar({
   const [userName, setUserName] = useState("Admin01");
   const [role, setRole] = useState("admin");
   const [mounted, setMounted] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
+    // ไม่ต้องตรวจสอบถ้ากำลัง sign out อยู่ - return ทันที
+    if (isSigningOut) {
+      return;
+    }
+    
     setMounted(true);
+    
+    // ตรวจสอบเฉพาะเมื่อ component mount และไม่ใช่หน้า signin
+    if (typeof window === "undefined") return;
+    
+    const currentPath = window.location.pathname;
+    // ไม่ต้องตรวจสอบถ้าไม่ได้อยู่ในหน้า admin
+    if (!currentPath.startsWith("/admin")) {
+      return;
+    }
+    
     try {
+      const signedIn = localStorage.getItem("musecraft.signedIn");
       const n = localStorage.getItem("musecraft.userName") || "Admin01";
-      const r = localStorage.getItem("musecraft.role") || "admin";
+      const r = localStorage.getItem("musecraft.role") || "";
       setUserName(userNameProp ?? n);
       setRole(r);
-      // ใช้เฉพาะหน้า admin เท่านั้น: ถ้าไม่ใช่ admin ให้เด้งไปหน้า signin
-      if (r !== "admin") router.replace("/signin");
-    } catch {}
-  }, [router, userNameProp]);
+      
+      // ถ้าไม่ได้ sign in หรือไม่ใช่ admin ให้ redirect ไป signin
+      if (!signedIn || r !== "admin") {
+        // ใช้ replace เพื่อไม่ให้กลับมาหน้าเดิม
+        router.replace("/signin");
+      }
+    } catch (error) {
+      // ถ้ามี error และอยู่ในหน้า admin ให้ redirect ไป signin
+      console.error("Error checking auth:", error);
+      router.replace("/signin");
+    }
+  }, [router, userNameProp, isSigningOut]);
 
   // ===== tabs =====
   const navTabs = useMemo(
@@ -45,7 +70,6 @@ export default function AdminNavbar({
         { href: "/admin", label: "Dashboard" },
         { href: "/admin/artworks", label: "Artworks" },
         { href: "/admin/users", label: "Users" },
-        { href: "/admin/auctions", label: "Auctions" },
       ],
     [tabs]
   );
@@ -96,22 +120,36 @@ export default function AdminNavbar({
     };
   }, [open, measure]);
 
-  // ✅ เปลี่ยนปลายทางเป็นหน้า Home ("/")
+  // ✅ เปลี่ยนปลายทางเป็นหน้า signin
   const handleSignOut = useCallback(() => {
-    onSignOut?.();
+    // ตั้ง flag ก่อนเพื่อป้องกัน useEffect redirect
+    setIsSigningOut(true);
+    setOpen(false);
+    
+    // ลบ localStorage ทั้งหมดที่เกี่ยวข้องกับ session
     try {
+      localStorage.clear(); // ลบทั้งหมดเพื่อความแน่ใจ
+      // หรือลบทีละตัวถ้าต้องการ
       localStorage.removeItem("musecraft.signedIn");
       localStorage.removeItem("musecraft.userName");
+      localStorage.removeItem("musecraft.userEmail");
+      localStorage.removeItem("musecraft.userId");
       localStorage.removeItem("musecraft.role");
       localStorage.removeItem("musecraft.roleRaw");
-    } catch {}
-    setOpen(false);              // ปิดเมนูก่อน
-    router.replace("/");         // กลับ Home
-    router.refresh();
-  }, [onSignOut, router]);
+    } catch (error) {
+      console.error("Error clearing localStorage:", error);
+    }
+    
+    // เรียก onSignOut callback ถ้ามี
+    onSignOut?.();
+    
+    // ใช้ window.location.href เพื่อ force reload ทั้งหมดและ redirect
+    // ไม่ใช้ replace เพราะอาจมีปัญหาในบางกรณี
+    window.location.href = "/signin";
+  }, [onSignOut]);
 
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-purple-100 pointer-events-auto">
+    <header className="sticky top-0 z-40 bg-white/90 border-b border-purple-100 pointer-events-auto backdrop-blur-safari">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-1">
         {/* Logo + Tabs */}
         <div className="flex items-center gap-10">
@@ -144,7 +182,7 @@ export default function AdminNavbar({
           ref={btnRef}
           onClick={toggleMenu}
           aria-haspopup="menu"
-          aria-expanded={open}
+          {...(open ? { "aria-expanded": "true" } : { "aria-expanded": "false" })}
           className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
         >
           {userName} <span className="text-xs text-gray-400">({role})</span>
@@ -157,13 +195,19 @@ export default function AdminNavbar({
         createPortal(
           <div
             className="fixed z-50 pointer-events-auto"
-            style={{ top: pos.top, left: pos.left, transform: "translateX(-100%)" }}
+            // eslint-disable-next-line react/forbid-dom-props
+            style={{ 
+              top: `${pos.top}px`, 
+              left: `${pos.left}px`, 
+              transform: "translateX(-100%)",
+            }}
           >
             <div
               role="menu"
               className="w-48 overflow-hidden rounded-md bg-white text-sm text-gray-800 shadow-lg ring-1 ring-black/5"
             >
               <button
+                role="menuitem"
                 className="block w-full px-3 py-2 text-left text-red-600 hover:bg-gray-50"
                 onClick={handleSignOut}
               >

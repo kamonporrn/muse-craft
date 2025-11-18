@@ -8,7 +8,7 @@ import { Search } from "lucide-react";
 import AdminNavbar from "@/components/AdminNavbar";
 
 /* ---------- Types ---------- */
-type Role = "Creator" | "Collector" | "Admin" | "Charity";
+type Role = "Creator" | "Collector" | "Admin";
 type Status = "Normal" | "Suspended" | "Deleted";
 
 type UserRow = {
@@ -58,15 +58,6 @@ const SEED: UserRow[] = [
     role: "Admin",
     status: "Normal",
     avatar: "/img/avatars/a4.jpg",
-  },
-  {
-    id: "u5",
-    accountId: "#CHA-001",
-    name: "Charity",
-    email: "charity@email.com",
-    role: "Charity", // 👈 ระบุบทบาท Charity ชัดเจน
-    status: "Normal",
-    avatar: "/img/avatars/a5.jpg",
   },
 ];
 
@@ -143,7 +134,6 @@ export default function AdminUsersPage() {
       case "Creator":
         return { href: `/admin/users/${u.id}/artworks`, label: "View Artworks" };
       case "Collector":
-      case "Charity":
         return { href: `/admin/users/${u.id}`, label: "View Account" };
       case "Admin":
         return { href: `/admin/users/${u.id}/log`, label: "View Log" };
@@ -180,12 +170,12 @@ export default function AdminUsersPage() {
                   setFRole(e.target.value as any);
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by role"
               >
                 <option>All</option>
                 <option>Creator</option>
                 <option>Collector</option>
                 <option>Admin</option>
-                <option>Charity</option>
               </select>
             </div>
 
@@ -199,6 +189,7 @@ export default function AdminUsersPage() {
                   setFStatus(e.target.value as any);
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by status"
               >
                 <option>All</option>
                 <option>Normal</option>

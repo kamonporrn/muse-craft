@@ -1,98 +1,122 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Muse Craft Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API สำหรับ Muse Craft platform ใช้ NestJS และ JSON file database
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- ✅ JSON File Database System
+- ✅ CRUD Operations สำหรับ Users, Products, Orders, AdminLogs
+- ✅ Real-time Updates via WebSocket
+- ✅ Authentication & Authorization
+- ✅ Backup & Restore System
+- ✅ RESTful API Endpoints
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Installation
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
+## Running the app
 
 ```bash
-# development
-$ npm run start
+# Development
+npm run start:dev
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Production
+npm run build
+npm run start:prod
 ```
 
-## Run tests
+## Database Structure
 
-```bash
-# unit tests
-$ npm run test
+Database files จะถูกเก็บใน `database/data/`:
+- `users.json` - User accounts
+- `credentials.json` - User credentials (email/password)
+- `products.json` - Product listings
+- `orders.json` - Order records
+- `admin-logs.json` - Admin activity logs
 
-# e2e tests
-$ npm run test:e2e
+Backup files จะถูกเก็บใน `database/backups/`
 
-# test coverage
-$ npm run test:cov
+## Real-time Updates
+
+ระบบรองรับ real-time updates ผ่าน WebSocket:
+
+### WebSocket Events
+
+**Subscribe to entity updates:**
+```javascript
+socket.emit('subscribe', { entity: 'users' });
+socket.emit('subscribe', { entity: 'products' });
+socket.emit('subscribe', { entity: 'orders' });
+socket.emit('subscribe', { entity: 'admin-logs' });
 ```
 
-## Deployment
+**Receive updates:**
+```javascript
+socket.on('user:update', (data) => {
+  // data: { action: 'create' | 'update' | 'delete', data: {...} }
+});
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+socket.on('product:update', (data) => {
+  // data: { action: 'create' | 'update' | 'delete', data: {...} }
+});
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+socket.on('order:update', (data) => {
+  // data: { action: 'create' | 'update' | 'delete', data: {...} }
+});
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+socket.on('admin-log:update', (data) => {
+  // data: { action: 'create' | 'update' | 'delete', data: {...} }
+});
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**Unsubscribe:**
+```javascript
+socket.emit('unsubscribe', { entity: 'users' });
+```
 
-## Resources
+## API Endpoints
 
-Check out a few resources that may come in handy when working with NestJS:
+### Users
+- `GET /users` - Get all users
+- `GET /users/:id` - Get user by ID
+- `POST /users` - Create user
+- `PUT /users/:id` - Update user
+- `DELETE /users/:id` - Delete user
+- `POST /users/auth/validate` - Validate user credentials
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Products
+- `GET /products` - Get all products
+- `GET /products/:id` - Get product by ID
+- `POST /products` - Create product
+- `PUT /products/:id` - Update product
+- `DELETE /products/:id` - Delete product
 
-## Support
+### Orders
+- `GET /orders` - Get all orders
+- `GET /orders/:id` - Get order by ID
+- `POST /orders` - Create order
+- `PUT /orders/:id` - Update order
+- `PUT /orders/:id/status` - Update order status
+- `DELETE /orders/:id` - Delete order
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Admin Logs
+- `GET /admin-logs` - Get all logs
+- `GET /admin-logs/:id` - Get log by ID
+- `POST /admin-logs` - Create log
+- `DELETE /admin-logs/:id` - Delete log
 
-## Stay in touch
+### Backup
+- `POST /backup` - Create backup
+- `GET /backup` - List all backups
+- `POST /backup/restore/:backupName` - Restore from backup
+- `DELETE /backup/:backupName` - Delete backup
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Environment Variables
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```env
+PORT=3000
+FRONTEND_URL=http://localhost:3001
+```

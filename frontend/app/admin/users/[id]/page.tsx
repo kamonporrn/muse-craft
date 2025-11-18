@@ -27,13 +27,13 @@ export default function AccountDetailPage({ params }: { params: { id: string } }
 
   if (!ok) return <div className="grid min-h-screen place-items-center bg-[#efe2fb]">Checking permission…</div>;
 
-  if (!user || (user.role !== "Collector" && user.role !== "Charity")) {
+  if (!user || user.role !== "Collector") {
     return (
       <div className="min-h-screen bg-[#efe2fb]">
         <AdminNavbar userName={adminName} />
         <main className="mx-auto max-w-5xl px-4 py-6">
           <p className="rounded-xl bg-white p-6 ring-1 ring-purple-100 text-gray-700">
-            User not found or not a Collector/Charity.
+            User not found or not a Collector.
           </p>
           <Link href="/admin/users" className="mt-4 inline-block text-purple-700 underline">Back to Users</Link>
         </main>

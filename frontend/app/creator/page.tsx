@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Images, Gavel, Search, LogOut, UserRound, BarChart3
+  Plus, Images, Search, LogOut, UserRound, BarChart3
 } from "lucide-react";
 
 type Slide = { img: string; title: string; author: string };
@@ -44,7 +44,6 @@ export default function CreatorHomePage() {
 
   // ===== Actions =====
   const gotoUpload = () => router.push("/creator/upload");      // อัปโหลดชิ้นงานสำหรับขาย (Sell)
-  const gotoAuction = () => router.push("/creator/auction/new"); // สร้างการประมูล (Auction)
   const gotoMyArtworks = () => router.push("/creator/artworks");
   const gotoAnalytics = () => router.push("/creator/analytics");
 
@@ -68,7 +67,7 @@ export default function CreatorHomePage() {
   return (
     <main className="min-h-screen bg-white text-gray-900">
       {/* ===== Navbar (Creator) ===== */}
-      <nav className="sticky top-0 z-40 border-b border-purple-100 bg-white/80 backdrop-blur">
+      <nav className="sticky top-0 z-40 border-b border-purple-100 bg-white/80" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           {/* Left: Logo + Search */}
           <div className="flex items-center gap-4">
@@ -129,13 +128,6 @@ export default function CreatorHomePage() {
             Upload Artwork (Sell)
           </button>
           <button
-            onClick={gotoAuction}
-            className="inline-flex items-center gap-2 rounded-xl bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-fuchsia-700"
-          >
-            <Gavel className="h-4 w-4" />
-            Start Auction
-          </button>
-          <button
             onClick={gotoMyArtworks}
             className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >
@@ -193,12 +185,6 @@ export default function CreatorHomePage() {
             title="Upload for Sell"
             desc="E-book, painting, digital files"
             onClick={gotoUpload}
-          />
-          <ActionCard
-            emoji="🔨"
-            title="Create Auction"
-            desc="Set starting bid & schedule"
-            onClick={gotoAuction}
           />
           <ActionCard
             emoji="📊"

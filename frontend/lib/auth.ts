@@ -13,3 +13,13 @@ export function getRole(): string {
   if (typeof window === "undefined") return "";
   return window.localStorage.getItem("musecraft.role") || "";
 }
+
+export function getUserEmail(): string {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem("musecraft.userEmail") || "";
+}
+
+export function getUserId(): string {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem("musecraft.userId") || "";
+}

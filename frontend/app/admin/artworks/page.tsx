@@ -2,14 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { Search, Eye } from "lucide-react";
+import { Search } from "lucide-react";
 import AdminNavbar from "@/components/AdminNavbar";
-import { products, toSlug, type Product } from "@/lib/products";
+import { fetchProducts, updateProductStatus, type ApiProduct } from "@/lib/api";
 
 /* ---------- Types ---------- */
 type Status = "Waiting for approval" | "Approved" | "Rejected";
-type ProdType = "Sell" | "Auction";
+type ProdType = "Sell";
 type Category =
   | "Painting"
   | "Sculpture"
@@ -19,46 +18,40 @@ type Category =
   | "Digital Art";
 
 type Item = {
-  id: string;                 // ใช้ slug เป็นไอดี
-  productSlug: string;        // อ้างกลับไปยัง lib/products
+  id: string;
+  productSlug: string;
   title: string;
   creator: string;
   category: Category;
   prodType: ProdType;
   price: number;
-  createdAt: string;          // ISO date
+  createdAt: string;
   status: Status;
   image: string;
   description?: string;
 };
 
-/* ---------- Helpers: seed จาก products ---------- */
-function recentISO(daysAgo: number) {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
-}
-function pickProdType(p: Product, i: number): ProdType {
-  if (p.category === "Literature (E-book)" || p.category === "Graphic Design") return "Sell";
-  return i % 2 === 0 ? "Auction" : "Sell";
-}
-function seedFromProducts(ps: Product[]): Item[] {
-  return ps.map((p, i) => {
-    const slug = toSlug(p.name);
-    return {
-      id: slug,
-      productSlug: slug,
-      title: p.name,
-      creator: p.author,
-      category: p.category as Category,
-      prodType: pickProdType(p, i),
-      price: p.price,
-      createdAt: recentISO((i % 7) + 1),
-      status: "Waiting for approval",
-      image: p.img,
-      description: `${p.author} — ${p.name}`,
-    };
-  });
+// Convert API product to Item
+function apiProductToItem(p: ApiProduct): Item {
+  const slug = p.name.toLowerCase().replace(/\s+/g, '-');
+  const statusMap: Record<string, Status> = {
+    "pending": "Waiting for approval",
+    "approved": "Approved",
+    "rejected": "Rejected",
+  };
+  return {
+    id: p.id,
+    productSlug: slug,
+    title: p.name,
+    creator: p.author,
+    category: p.category as Category,
+    prodType: "Sell",
+    price: p.price,
+    createdAt: p.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+    status: statusMap[p.status || "pending"] || "Waiting for approval",
+    image: p.img,
+    description: p.description || `${p.author} — ${p.name}`,
+  };
 }
 
 const fmtDate = (iso: string) => {
@@ -85,8 +78,24 @@ export default function AdminArtworksPage() {
     }
   }, []);
 
-  // ใช้ข้อมูลจาก lib/products.ts
-  const [items, setItems] = useState<Item[]>(() => seedFromProducts(products));
+  // Load products from API
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fadingOut, setFadingOut] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const products = await fetchProducts();
+        setItems(products.map(apiProductToItem));
+      } catch (error) {
+        console.error('Failed to load products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
 
   /* ---------- Filters ---------- */
   const [q, setQ] = useState("");
@@ -96,12 +105,15 @@ export default function AdminArtworksPage() {
   const [fDate, setFDate] = useState("");
 
   const categoryOptions = useMemo(() => {
-    // unique categories จาก products
-    return Array.from(new Set(products.map((p) => p.category))) as Category[];
-  }, []);
+    // unique categories from items
+    return Array.from(new Set(items.map((it) => it.category))) as Category[];
+  }, [items]);
 
   const filtered = useMemo(() => {
     return items.filter((it) => {
+      // Hide cards that are fading out
+      if (fadingOut.has(it.id)) return false;
+      
       if (fCategory !== "All" && it.category !== fCategory) return false;
       if (fStatus !== "All" && it.status !== fStatus) return false;
       if (fType !== "All" && it.prodType !== fType) return false;
@@ -112,12 +124,92 @@ export default function AdminArtworksPage() {
       }
       return true;
     });
-  }, [items, fCategory, fStatus, fType, fDate, q]);
+  }, [items, fCategory, fStatus, fType, fDate, q, fadingOut]);
 
-  const approve = (id: string) =>
-    setItems((arr) => arr.map((x) => (x.id === id ? { ...x, status: "Approved" } : x)));
-  const reject = (id: string) =>
-    setItems((arr) => arr.map((x) => (x.id === id ? { ...x, status: "Rejected" } : x)));
+  const approve = async (id: string) => {
+    try {
+      console.log(`Approving product with id: ${id}`);
+      // Start fade out animation
+      setFadingOut(prev => new Set(prev).add(id));
+      
+      // Wait for fade animation (300ms)
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const updated = await updateProductStatus(id, "approved");
+      if (updated) {
+        // Remove from fadingOut and reload products
+        setFadingOut(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        // Reload products to get fresh data
+        const products = await fetchProducts();
+        setItems(products.map(apiProductToItem));
+        console.log(`Product ${id} approved successfully`);
+      } else {
+        // Cancel fade out on error
+        setFadingOut(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        alert("Failed to approve product. Product not found or update failed.");
+      }
+    } catch (error) {
+      // Cancel fade out on error
+      setFadingOut(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      console.error('Error approving product:', error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to approve product: ${errorMessage}`);
+    }
+  };
+  const reject = async (id: string) => {
+    try {
+      console.log(`Rejecting product with id: ${id}`);
+      // Start fade out animation
+      setFadingOut(prev => new Set(prev).add(id));
+      
+      // Wait for fade animation (300ms)
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const updated = await updateProductStatus(id, "rejected");
+      if (updated) {
+        // Remove from fadingOut and reload products
+        setFadingOut(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        // Reload products to get fresh data
+        const products = await fetchProducts();
+        setItems(products.map(apiProductToItem));
+        console.log(`Product ${id} rejected successfully`);
+      } else {
+        // Cancel fade out on error
+        setFadingOut(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        alert("Failed to reject product. Product not found or update failed.");
+      }
+    } catch (error) {
+      // Cancel fade out on error
+      setFadingOut(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      console.error('Error rejecting product:', error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Failed to reject product: ${errorMessage}`);
+    }
+  };
 
   if (!ok) {
     return (
@@ -144,6 +236,7 @@ export default function AdminArtworksPage() {
                 value={fCategory}
                 onChange={(e) => setFCategory(e.target.value as any)}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by category"
               >
                 <option>All</option>
                 {categoryOptions.map((c) => (
@@ -162,6 +255,7 @@ export default function AdminArtworksPage() {
                 value={fDate}
                 onChange={(e) => setFDate(e.target.value)}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by date"
               />
             </div>
 
@@ -172,6 +266,7 @@ export default function AdminArtworksPage() {
                 value={fStatus}
                 onChange={(e) => setFStatus(e.target.value as any)}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by status"
               >
                 <option>All</option>
                 <option>Waiting for approval</option>
@@ -180,17 +275,17 @@ export default function AdminArtworksPage() {
               </select>
             </div>
 
-            {/* Type of product (Sell / Auction) */}
+            {/* Type of product */}
             <div>
               <div className="mb-1 text-sm font-semibold text-gray-700">Type of product</div>
               <select
                 value={fType}
                 onChange={(e) => setFType(e.target.value as any)}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by product type"
               >
                 <option>All</option>
                 <option>Sell</option>
-                <option>Auction</option>
               </select>
             </div>
 
@@ -213,7 +308,12 @@ export default function AdminArtworksPage() {
         {/* List */}
         <section className="mt-5 space-y-4">
           {filtered.map((it) => (
-            <article key={it.id} className="rounded-2xl bg-white p-4 ring-1 ring-purple-100 shadow-sm">
+            <article 
+              key={it.id} 
+              className={`rounded-2xl bg-white p-4 ring-1 ring-purple-100 shadow-sm transition-opacity duration-300 ${
+                fadingOut.has(it.id) ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
               <div className="grid grid-cols-[96px_1fr_auto] gap-4">
                 <div className="h-24 w-24 overflow-hidden rounded-xl ring-1 ring-black/5">
                   <Image src={it.image} alt={it.title} width={192} height={192} className="h-full w-full object-cover" />
@@ -225,15 +325,9 @@ export default function AdminArtworksPage() {
                     <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
                       {it.category}
                     </span>
-                    {it.prodType === "Auction" ? (
-                      <span className="rounded-full bg-fuchsia-100 px-2.5 py-0.5 text-xs font-semibold text-fuchsia-700">
-                        Auction
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
-                        Sell
-                      </span>
-                    )}
+                    <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-semibold text-sky-700">
+                      Sell
+                    </span>
                   </div>
 
                   <div className="mt-1 text-sm text-gray-600">
@@ -249,28 +343,24 @@ export default function AdminArtworksPage() {
 
                 <div className="flex flex-col items-end gap-2">
                   <div className="text-sm text-gray-500">{fmtDate(it.createdAt)}</div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => approve(it.id)}
-                      className="rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-200"
-                    >
-                      ✓ Approve
-                    </button>
-                    <button
-                      onClick={() => reject(it.id)}
-                      className="rounded-full bg-rose-100 px-3 py-1.5 text-sm font-semibold text-rose-700 hover:bg-rose-200"
-                    >
-                      ✗ Disapprove
-                    </button>
-                  </div>
+                  {/* Only show buttons if status is "Waiting for approval" */}
+                  {it.status === "Waiting for approval" && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => approve(it.id)}
+                        className="rounded-full bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-200"
+                      >
+                        ✓ Approve
+                      </button>
+                      <button
+                        onClick={() => reject(it.id)}
+                        className="rounded-full bg-rose-100 px-3 py-1.5 text-sm font-semibold text-rose-700 hover:bg-rose-200"
+                      >
+                        ✗ Disapprove
+                      </button>
+                    </div>
+                  )}
 
-                  <Link
-                    href={`/products/${it.productSlug}`}
-                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                  >
-                    <Eye className="h-4 w-4 text-gray-500" />
-                    See details
-                  </Link>
 
                   <span
                     className={[

@@ -4,7 +4,7 @@ import { products } from "@/lib/products";
 /* =========================
  * Types
  * =========================*/
-export type Role = "Creator" | "Collector" | "Admin" | "Charity";
+export type Role = "Creator" | "Collector" | "Admin";
 export type Status = "Normal" | "Suspended" | "Deleted";
 
 export type User = {
@@ -43,7 +43,6 @@ const SEED_USERS: User[] = [
   { id: "u2", accountId: "#CRE-002", name: "Mason Park",   email: "creator2@email.com",  role: "Creator",   status: "Suspended", avatar: "/img/avatars/a2.jpg" },
   { id: "u3", accountId: "#COL-001", name: "Noah Brown",   email: "collector@email.com", role: "Collector", status: "Normal",    avatar: "/img/avatars/a3.jpg" },
   { id: "u4", accountId: "#AD-001",  name: "Admin01",      email: "admin01@email.com",   role: "Admin",     status: "Normal",    avatar: "/img/avatars/a4.jpg" },
-  { id: "u5", accountId: "#CHA-001", name: "Charity",      email: "charity@email.com",   role: "Charity",   status: "Normal",    avatar: "/img/avatars/a5.jpg" },
 ];
 
 const SEED_CREDS: Credential[] = [
@@ -51,7 +50,6 @@ const SEED_CREDS: Credential[] = [
   { email: "creator@email.com", password: "creator123",  userId: "u1" },
   { email: "creator2@email.com",password: "creator123",  userId: "u2" },
   { email: "collector@email.com", password: "collector123", userId: "u3" },
-  { email: "charity@email.com",  password: "charity123", userId: "u5" },
 ];
 
 export const ORDERS: Order[] = [
@@ -65,19 +63,11 @@ export const ORDERS: Order[] = [
     total: 1499 + 499 * 2,
     dateISO: new Date(Date.now() - 5 * 864e5).toISOString(),
   },
-  {
-    id: "o-10002",
-    buyerId: "u5", // Charity
-    items: [{ name: "Siam Weave", price: 1699, qty: 1 }],
-    total: 1699,
-    dateISO: new Date(Date.now() - 2 * 864e5).toISOString(),
-  },
 ];
 
 export const ADMIN_LOGS: AdminLog[] = [
   { id: "L-1", adminId: "u4", atISO: new Date(Date.now() - 3600e3).toISOString(),    action: "Approved artwork", target: "Ocean Whisper" },
   { id: "L-2", adminId: "u4", atISO: new Date(Date.now() - 2 * 3600e3).toISOString(),action: "Suspended user",   target: "Mason Park" },
-  { id: "L-3", adminId: "u4", atISO: new Date(Date.now() - 28 * 3600e3).toISOString(),action: "Created auction",  target: "Moonlight Garden" },
 ];
 
 /* =========================
@@ -140,7 +130,7 @@ export function getUserByEmail(email: string) {
 export function listArtworksByCreator(userName: string) {
   return products.filter((p) => p.author === userName);
 }
-/* Collector/Charity → orders */
+/* Collector → orders */
 export function listOrdersByBuyer(userId: string) {
   return ORDERS.filter((o) => o.buyerId === userId);
 }

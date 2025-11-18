@@ -7,7 +7,6 @@ import AdminNavbar from "@/components/AdminNavbar";
 const pink   = "#ec4899";   // Artworks
 const green  = "#10b981";   // Creators
 const orange = "#f59e0b";   // Collectors
-const purple = "#8b5cf6";   // Auctions
 
 const DAYS = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 
@@ -53,7 +52,6 @@ export default function AdminDashboard() {
     artworks:  [112, 114, 118, 121, 123, 125, 127],
     creators:  [30,  31,  31,  33,  34,  35,  36],
     collectors:[40,  41,  41,  43,  44,  44,  45],
-    auctions:  [4,   4,   5,   5,   5,   5,   5],
   };
 
   // ค่าปัจจุบัน = วันสุดท้ายของสัปดาห์ | Δ = last - first
@@ -61,7 +59,6 @@ export default function AdminDashboard() {
     { key: "artworks",   label: "Total Artworks",   color: pink,   value: weekly.artworks.at(-1)!,   delta: weekly.artworks.at(-1)!   - weekly.artworks[0] },
     { key: "creators",   label: "Total Creators",   color: green,  value: weekly.creators.at(-1)!,   delta: weekly.creators.at(-1)!   - weekly.creators[0] },
     { key: "collectors", label: "Total Collectors", color: orange, value: weekly.collectors.at(-1)!, delta: weekly.collectors.at(-1)! - weekly.collectors[0] },
-    { key: "auctions",   label: "Ongoing Auctions", color: purple, value: weekly.auctions.at(-1)!,   delta: weekly.auctions.at(-1)!   - weekly.auctions[0] },
   ];
 
   /** เตรียมซีรีส์กราฟ */
@@ -69,7 +66,6 @@ export default function AdminDashboard() {
     { name: "Artworks",   color: pink,   data: weekly.artworks },
     { name: "Creators",   color: green,  data: weekly.creators },
     { name: "Collectors", color: orange, data: weekly.collectors },
-    { name: "Auctions",   color: purple, data: weekly.auctions },
   ];
 
   // หา min/max เพื่อสเกลกราฟพอดี

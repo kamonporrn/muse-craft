@@ -1,15 +1,47 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
+import { fetchCurrentUser, updateUser, type ApiUser } from "@/lib/api";
 
 export default function EditSettingPage() {
   const router = useRouter();
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string>("/images/store-avatar-placeholder.jpg");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [phoneError, setPhoneError] = useState<string>("");
-  const [phoneValue, setPhoneValue] = useState<string>("0987654321");
+  const [phoneValue, setPhoneValue] = useState<string>("");
+  const [storeName, setStoreName] = useState<string>("");
+  const [ownerName, setOwnerName] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+
+  // Load user data
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await fetchCurrentUser();
+        if (userData) {
+          setUser(userData);
+          setStoreName(userData.storeName || "");
+          setOwnerName(userData.name || "");
+          setAddress(userData.address || "");
+          setEmail(userData.email || "");
+          setPhoneValue(userData.phone || "");
+          setAvatarPreview(userData.avatar || "/images/store-avatar-placeholder.jpg");
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -30,6 +62,8 @@ export default function EditSettingPage() {
         return;
       }
 
+      setAvatarFile(file);
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -38,6 +72,66 @@ export default function EditSettingPage() {
       reader.readAsDataURL(file);
     }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate phone number
+    if (phoneValue && phoneValue.length !== 10) {
+      setPhoneError("Phone number must be exactly 10 digits");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (!user) {
+        alert("User data not loaded");
+        return;
+      }
+
+      // Convert image file to base64 for storage
+      let avatarPath = user.avatar;
+      if (avatarFile) {
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onloadend = () => {
+            resolve(reader.result as string);
+          };
+          reader.readAsDataURL(avatarFile);
+        });
+        avatarPath = await base64Promise;
+      }
+
+      const updatedUser = await updateUser(user.id, {
+        storeName: storeName || undefined,
+        name: ownerName,
+        address: address || undefined,
+        phone: phoneValue || undefined,
+        avatar: avatarPath,
+      });
+
+      if (updatedUser) {
+        router.push('/artist-writer/setting');
+      } else {
+        alert("Failed to update store information");
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert("An error occurred while updating store information");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
+        <div className="bg-white rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-8">
+          <div className="text-center text-gray-500">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-6">
@@ -89,12 +183,7 @@ export default function EditSettingPage() {
           {/* FORM INPUTS */}
           <form 
             className="flex flex-col gap-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              // Handle form submission here
-              // After saving, redirect to setting page
-              router.push('/artist-writer/setting');
-            }}
+            onSubmit={handleSubmit}
           >
             
             {/* Store Name */}
@@ -103,7 +192,8 @@ export default function EditSettingPage() {
               <input
                 id="storeName"
                 type="text"
-                defaultValue="Happy Story"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-[#e6d4ff] px-4 py-3 focus:outline-none focus:border-[#9317ff]"
               />
             </div>
@@ -114,8 +204,10 @@ export default function EditSettingPage() {
               <input
                 id="ownerName"
                 type="text"
-                defaultValue="Sophia Mitchell"
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-[#e6d4ff] px-4 py-3 focus:outline-none focus:border-[#9317ff]"
+                required
               />
             </div>
 
@@ -125,7 +217,8 @@ export default function EditSettingPage() {
               <input
                 id="address"
                 type="text"
-                defaultValue="123 Chiang Rai, Thailand, 71000"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-[#e6d4ff] px-4 py-3 focus:outline-none focus:border-[#9317ff]"
               />
             </div>
@@ -136,8 +229,11 @@ export default function EditSettingPage() {
               <input
                 id="email"
                 type="email"
-                defaultValue="@happy_story.com"
-                className="mt-1 w-full rounded-xl border border-[#e6d4ff] px-4 py-3 focus:outline-none focus:border-[#9317ff]"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-[#e6d4ff] px-4 py-3 focus:outline-none focus:border-[#9317ff] bg-gray-100"
+                disabled
+                title="Email cannot be changed"
               />
             </div>
 
@@ -191,9 +287,10 @@ export default function EditSettingPage() {
               {/* SAVE BUTTON */}
               <button
                 type="submit"
-                className="px-6 py-2 rounded-full bg-[#9317ff] text-white font-medium hover:bg-[#7d12d8] transition"
+                disabled={saving}
+                className="px-6 py-2 rounded-full bg-[#9317ff] text-white font-medium hover:bg-[#7d12d8] disabled:bg-gray-400 disabled:cursor-not-allowed transition"
               >
-                Save Changes
+                {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
 

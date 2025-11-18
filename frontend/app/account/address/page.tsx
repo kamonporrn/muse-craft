@@ -5,7 +5,8 @@ import Link from "next/link";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { isSignedIn } from "@/lib/auth";
 
 type Address = {
   id: string;
@@ -45,6 +46,15 @@ export default function AddressBookPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Address[]>(MOCK_ADDRESSES);
+
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!isSignedIn()) {
+        router.push("/signin");
+      }
+    }
+  }, [router]);
 
   // === Add-Address modal state ===
   const [openAdd, setOpenAdd] = useState(false);

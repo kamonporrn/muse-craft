@@ -12,34 +12,142 @@ import {
   FaChartLine,
   FaMoneyBillWave,
 } from "react-icons/fa";
+import { fetchCurrentUser, fetchOrdersByCreator, fetchProductsByAuthor, type ApiUser, type ApiOrder, type ApiProduct } from "@/lib/api";
 
-// Generate sales data for a month
-const generateSalesData = (year: number, month: number) => {
+// Calculate sales data from actual orders
+const calculateSalesData = (orders: ApiOrder[], year: number, month: number) => {
   const daysInMonth = new Date(year, month, 0).getDate();
-  const data = [];
+  
+  // Only count completed orders (delivered or shipped)
+  const completedOrders = orders.filter(o => 
+    o && (o.status === "delivered" || o.status === "shipped")
+  );
+  
+  // Initialize sales data for all days in the month
+  const dailySales: Record<number, number> = {};
   for (let day = 1; day <= daysInMonth; day++) {
-    // Simulate sales data with some variation
-    const baseValue = 3000 + Math.sin((day / daysInMonth) * Math.PI * 2) * 2000;
-    const variation = (Math.random() - 0.5) * 1000;
-    data.push({
-      day,
-      sales: Math.max(0, Math.round(baseValue + variation)),
-      date: new Date(year, month - 1, day)
-    });
+    dailySales[day] = 0;
   }
-  return data;
+  
+  // Calculate revenue for each day from orders
+  completedOrders.forEach(order => {
+    if (!order.dateISO) return;
+    const orderDate = new Date(order.dateISO);
+    
+    // Check if order is in the selected month/year
+    if (orderDate.getFullYear() === year && orderDate.getMonth() + 1 === month) {
+      const day = orderDate.getDate();
+      if (day >= 1 && day <= daysInMonth) {
+        // Add order total to that day's sales
+        const orderTotal = order.total || 0;
+        dailySales[day] = (dailySales[day] || 0) + (typeof orderTotal === 'number' && !isNaN(orderTotal) ? orderTotal : 0);
+      }
+    }
+  });
+  
+  // Convert to array format
+  return Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    return {
+      day,
+      sales: dailySales[day] || 0,
+      date: new Date(year, month - 1, day)
+    };
+  });
 };
 
 export default function ArtistWriterHome() {
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [products, setProducts] = useState<ApiProduct[]>([]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; data: { day: number; sales: number; date: Date } } | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartDimensions, setChartDimensions] = useState({ width: 0, height: 0 });
 
-  const salesData = useMemo(() => generateSalesData(selectedYear, selectedMonth), [selectedYear, selectedMonth]);
+  // Load user data, orders, and products
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const userData = await fetchCurrentUser();
+        setUser(userData);
+        
+        if (userData) {
+          const ordersData = await fetchOrdersByCreator(userData.name);
+          setOrders(ordersData);
+          
+          // Fetch products by creator (author)
+          const productsData = await fetchProductsByAuthor(userData.name);
+          setProducts(productsData);
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      }
+    };
+    loadData();
+  }, []);
   
-  const maxSales = Math.max(...salesData.map(d => d.sales), 1);
+  // Calculate order counts
+  // confirmed status = to confirm (waiting for artist to confirm)
+  // shipped status = to ship (ready to ship, corresponds to processing in collector)
+  const toConfirmCount = orders.filter(o => o.status === "confirmed").length;
+  const toShipCount = orders.filter(o => o.status === "shipped").length;
+  const canceledCount = orders.filter(o => o.status === "cancelled").length;
+
+  // Calculate sales and revenue from actual orders
+  const completedOrders = useMemo(() => {
+    // ถ้ายังไม่มี orders หรือ orders เป็น empty array ให้ return empty array
+    if (!orders || orders.length === 0) return [];
+    // Only count orders that are delivered or shipped (completed sales)
+    return orders.filter(o => o && (o.status === "delivered" || o.status === "shipped"));
+  }, [orders]);
+
+  // Calculate total sales this month
+  const totalSalesThisMonth = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    
+    return completedOrders.filter(o => {
+      if (!o.dateISO) return false;
+      const orderDate = new Date(o.dateISO);
+      return orderDate.getFullYear() === currentYear && 
+             orderDate.getMonth() + 1 === currentMonth;
+    }).length;
+  }, [completedOrders]);
+
+  // Calculate total revenue from all completed orders
+  const totalRevenue = useMemo(() => {
+    if (!completedOrders || completedOrders.length === 0) return 0;
+    return completedOrders.reduce((sum, order) => {
+      const orderTotal = order.total || 0;
+      return sum + (typeof orderTotal === 'number' && !isNaN(orderTotal) ? orderTotal : 0);
+    }, 0);
+  }, [completedOrders]);
+
+  // Format revenue for display
+  const formatRevenue = (amount: number) => {
+    // ถ้าไม่มีจำนวนเงินหรือเป็น 0 ให้แสดง "-"
+    if (!amount || amount === 0 || isNaN(amount)) return "-";
+    if (amount >= 1000000) {
+      return `฿${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `฿${(amount / 1000).toFixed(0)}K`;
+    }
+    return `฿${amount.toLocaleString()}`;
+  };
+
+  // Calculate sales data from actual orders
+  const salesData = useMemo(() => {
+    return calculateSalesData(orders, selectedYear, selectedMonth);
+  }, [orders, selectedYear, selectedMonth]);
+  
+  // Calculate max sales for chart - use at least 1 to avoid division by zero
+  const maxSales = useMemo(() => {
+    const max = Math.max(...salesData.map(d => d.sales), 0);
+    return max > 0 ? max : 1; // Use 1 as minimum to show empty chart properly
+  }, [salesData]);
 
   // Update chart dimensions based on container size
   useEffect(() => {
@@ -78,11 +186,15 @@ export default function ArtistWriterHome() {
   const paddingLeft = Math.max(50, chartWidth * 0.08);
   const paddingRight = Math.max(20, chartWidth * 0.03);
   const paddingTop = Math.max(20, chartHeight * 0.1);
+  // Calculate product counts
+  const totalProducts = products.length;
+  const liveProducts = products.filter(p => p.status === "approved").length;
+
   const paddingBottom = Math.max(30, chartHeight * 0.15);
   return (
     <div className="flex flex-col gap-6">
         {/* Profile Section */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-6 mb-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold">Home</h2>
           </div>
@@ -90,36 +202,47 @@ export default function ArtistWriterHome() {
           <div className="flex flex-wrap items-center justify-between mt-6">
             <div className="flex items-center gap-4 pl-2">
               <img
-                src="/img/profile1.jpg"
+                src={user?.avatar || "/img/profile1.jpg"}
                 alt="Profile"
                 className="w-36 h-36 rounded-full object-cover border"
               />
               <div>
-                <h3 className="font-semibold text-lg">Sophia Mitchell</h3>
-                <p className="text-sm text-gray-500">Joined 2020</p>
+                <h3 className="font-semibold text-lg">{user?.name || "Sophia Mitchell"}</h3>
+                <p className="text-sm text-gray-500">
+                  {user?.storeName ? `Store: ${user.storeName}` : "Joined 2020"}
+                </p>
               </div>
             </div>
-
+            <Link
+              href="/artist-writer/setting"
+              className="px-4 py-2 rounded-full bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors"
+            >
+              View Store Info
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
             <Link href="/artist-writer/my-product" className="border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center hover:border-purple-300 hover:shadow-md transition-all cursor-pointer">
               <FaBox className="text-purple-600 text-lg mb-2" />
-              <span className="text-2xl font-bold text-purple-600">30</span>
+              <span className="text-2xl font-bold text-purple-600">{liveProducts}</span>
               <p className="text-sm text-gray-700 mt-2">Products</p>
               <p className="text-xs text-gray-400">Active listings</p>
             </Link>
             
             <div className="border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center">
               <FaChartLine className="text-green-600 text-lg mb-2" />
-              <span className="text-2xl font-bold text-green-600">100</span>
+              <span className="text-2xl font-bold text-green-600">
+                {totalSalesThisMonth > 0 ? totalSalesThisMonth : "0"}
+              </span>
               <p className="text-sm text-gray-700 mt-2">Total Sales</p>
               <p className="text-xs text-gray-400">This month</p>
             </div>
             
             <Link href="/artist-writer/finance" className="border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center hover:border-blue-300 hover:shadow-md transition-all cursor-pointer">
               <FaMoneyBillWave className="text-blue-600 text-lg mb-2" />
-              <span className="text-2xl font-bold text-blue-600">฿450K</span>
+              <span className="text-2xl font-bold text-blue-600">
+                {formatRevenue(totalRevenue)}
+              </span>
               <p className="text-sm text-gray-700 mt-2">Revenue</p>
               <p className="text-xs text-gray-400">Total earnings</p>
             </Link>
@@ -127,7 +250,7 @@ export default function ArtistWriterHome() {
         </div>
 
         {/* Order Status */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-lg">Order Status</h3>
             <a
@@ -141,19 +264,19 @@ export default function ArtistWriterHome() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center">
               <FaClock className="text-yellow-400 text-lg mb-2" />
-              <span className="text-2xl font-bold text-yellow-500">6</span>
+              <span className="text-2xl font-bold text-yellow-500">{toConfirmCount}</span>
               <p className="text-sm text-gray-700 mt-2">To Confirm</p>
               <p className="text-xs text-gray-400">Orders in queue</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center">
               <FaTruck className="text-blue-400 text-lg mb-2" />
-              <span className="text-2xl font-bold text-blue-500">3</span>
+              <span className="text-2xl font-bold text-blue-500">{toShipCount}</span>
               <p className="text-sm text-gray-700 mt-2">To Ship</p>
               <p className="text-xs text-gray-400">Ready for shipment</p>
             </div>
             <div className="border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center">
               <FaTimesCircle className="text-red-400 text-lg mb-2" />
-              <span className="text-2xl font-bold text-red-500">2</span>
+              <span className="text-2xl font-bold text-red-500">{canceledCount}</span>
               <p className="text-sm text-gray-700 mt-2">Canceled</p>
               <p className="text-xs text-gray-400">Canceled orders</p>
             </div>
@@ -161,7 +284,7 @@ export default function ArtistWriterHome() {
         </div>
 
         {/* Sales Dashboard */}
-        <div className="bg-white rounded-2xl shadow-md p-6">
+        <div className="bg-white rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold text-lg">Sales Dashboard</h3>
             <div className="flex gap-2 items-center">
