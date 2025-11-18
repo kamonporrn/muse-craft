@@ -23,11 +23,76 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
 /* Backdrop filter support for Safari */
 .backdrop-blur-safari {
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* Utility classes for dynamic styles */
+.progress-bar-width {
+  width: var(--progress-width, 0%);
+}
+
+.svg-chart {
+  left: 0;
+  right: 0;
+}
+
+.bar-hover-scale {
+  transform: scaleY(1.05);
+  transform-origin: bottom;
+}
+
+.tooltip-position {
+  left: var(--tooltip-x, 0px);
+  top: var(--tooltip-y, 0px);
+  transform: translateX(-50%);
+  min-width: 150px;
+}
+
+.x-axis-labels {
+  left: var(--padding-left, 0px);
+  right: var(--padding-right, 0px);
+  bottom: 2px;
+}
+
+.y-axis-labels {
+  top: var(--padding-top, 0px);
+  bottom: var(--padding-bottom, 0px);
+}
+
+.label-width {
+  width: var(--label-width, 100%);
+}
+
+/* Finance page styles */
+.circle-transition {
+  transition: stroke-dasharray 0.5s ease-out, stroke-dashoffset 0.5s ease-out;
+}
+
+.svg-text-small {
+  font-size: 1.5px;
+  font-family: Arial, sans-serif;
+}
+
+.svg-text-large {
+  font-size: 6.5px;
+  font-weight: bold;
+  font-family: Arial, sans-serif;
+}
+
+.color-indicator {
+  background-color: var(--indicator-color);
+}
+
+/* AdminNavbar dropdown positioning */
+.dropdown-position {
+  top: var(--dropdown-top, 0px);
+  left: var(--dropdown-left, 0px);
+  transform: translateX(-100%);
 }

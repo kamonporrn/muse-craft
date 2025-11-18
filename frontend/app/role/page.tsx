@@ -77,7 +77,7 @@ export default function RoleSelectPage() {
 
   return (
     <div className="min-h-screen bg-purple-50 flex items-center justify-center px-6">
-      <main className="w-full max-w-6xl rounded-2xl bg-white/90 border border-purple-100 shadow-xl p-8" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+      <main className="w-full max-w-6xl rounded-2xl bg-white/90 border border-purple-100 shadow-xl p-8 backdrop-blur-safari">
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Choose Your Role</h1>
           <p className="mt-2 text-gray-600">

@@ -165,19 +165,17 @@ export default function AdminDashboard() {
               </div>
               <div
                 className="mt-1 text-3xl font-extrabold"
-                style={{ color: s.color }}
+                // eslint-disable-next-line react/forbid-dom-props
+                style={{ '--stat-color': s.color, color: s.color } as React.CSSProperties}
               >
                 {s.value}
               </div>
               <div
-                className="mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                style={{
-                  color: s.delta >= 0 ? "#065f46" : "#991b1b",
-                  background: s.delta >= 0 ? "#d1fae5" : "#fee2e2",
-                  border: `1px solid ${
-                    s.delta >= 0 ? "#10b98133" : "#ef444433"
-                  }`,
-                }}
+                className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                  s.delta >= 0 
+                    ? 'text-emerald-800 bg-emerald-100 border border-emerald-200' 
+                    : 'text-red-800 bg-red-100 border border-red-200'
+                }`}
               >
                 {s.delta >= 0 ? "▲" : "▼"} {Math.abs(s.delta)} this week
               </div>
@@ -196,8 +194,9 @@ export default function AdminDashboard() {
               {series.map((s) => (
                 <span key={s.name} className="inline-flex items-center gap-2">
                   <i
-                    className="inline-block h-2.5 w-2.5 rounded-full"
-                    style={{ background: s.color }}
+                    className="inline-block h-2.5 w-2.5 rounded-full color-indicator"
+                    // eslint-disable-next-line react/forbid-dom-props
+                    style={{ '--indicator-color': s.color } as React.CSSProperties}
                   />
                   <span className="text-gray-600">{s.name}</span>
                 </span>
@@ -216,8 +215,9 @@ export default function AdminDashboard() {
                   {series.map((s) => (
                     <div key={s.name} className="flex items-center gap-2">
                       <i
-                        className="inline-block h-2 w-2 rounded-full"
-                        style={{ background: s.color }}
+                        className="inline-block h-2 w-2 rounded-full color-indicator"
+                        // eslint-disable-next-line react/forbid-dom-props
+                        style={{ '--indicator-color': s.color } as React.CSSProperties}
                       />
                       <span className="text-gray-700">{s.name}:</span>
                       <span className="font-medium text-gray-900">

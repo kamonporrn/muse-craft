@@ -624,9 +624,7 @@ export default function FinancePage() {
                       strokeWidth={7}
                       strokeDasharray={`${valuePercent} ${100 - valuePercent}`}
                       strokeDashoffset={offset}
-                      style={{
-                        transition: 'stroke-dasharray 0.5s ease-out, stroke-dashoffset 0.5s ease-out'
-                      }}
+                      className="circle-transition"
                     />
                   );
                 });
@@ -636,12 +634,7 @@ export default function FinancePage() {
                       x="21"
                       y="15"
                       textAnchor="middle"
-                      className="fill-gray-800"
-                      style={{
-                        fontSize: '1.5px',
-                        fontWeight: 'normal',
-                        fontFamily: 'Arial, sans-serif'
-                      }}
+                      className="fill-gray-800 svg-text-small"
                     >
                       Total Revenue
                     </text>
@@ -649,12 +642,7 @@ export default function FinancePage() {
                       x="21"
                       y="23"
                       textAnchor="middle"
-                      className="fill-gray-800"
-                      style={{
-                        fontSize: '6.5px',
-                        fontWeight: 'bold',
-                        fontFamily: 'Arial, sans-serif'
-                      }}
+                      className="fill-gray-800 svg-text-large"
                     >
                       {totalRevenue > 0 ? totalRevenue.toLocaleString() : '0'}
                     </text>
@@ -662,11 +650,7 @@ export default function FinancePage() {
                       x="21"
                       y="27"
                       textAnchor="middle"
-                      className="fill-gray-600"
-                      style={{
-                        fontSize: '1.5px',
-                        fontFamily: 'Arial, sans-serif'
-                      }}
+                      className="fill-gray-600 svg-text-small"
                     >
                       Baht
                     </text>
@@ -682,8 +666,9 @@ export default function FinancePage() {
                 <div key={`${displayPeriodType}-${item.name}-${i}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-3">
                     <span 
-                      className="w-4 h-4 rounded-full flex-shrink-0" 
-                      style={{ backgroundColor: item.color }}
+                      className="w-4 h-4 rounded-full flex-shrink-0 color-indicator" 
+                      // eslint-disable-next-line react/forbid-dom-props
+                      style={{ '--indicator-color': item.color } as React.CSSProperties}
                       aria-label={`${item.name} color indicator`}
                     ></span>
                     <div className="flex flex-col">

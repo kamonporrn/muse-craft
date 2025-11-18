@@ -16,14 +16,11 @@ import {
 import Navbar from "@/components/Navbar";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
-import { products, toSlug } from "@/lib/products";
+import { getProducts, toSlug, type Product } from "@/lib/products";
 import { isSignedIn, getUserName } from "@/lib/auth";
 
 export default function Home() {
   const router = useRouter();
-
-  // ดึงสินค้าจาก lib/products (เชื่อมเป็นแหล่งเดียวกับ Admin)
-  const allProducts: Product[] = useMemo(() => getProducts(), []);
 
   // Search state (shared to Navbar / NavbarSignedIn)
   const [search, setSearch] = useState("");
@@ -40,14 +37,15 @@ export default function Home() {
     setSigned(isSignedIn());
     setUserName(getUserName());
 
-    // Fetch products from API
-    getProducts().then((data) => {
+    // Fetch products from store
+    try {
+      const data = getProducts();
       setProducts(data);
       setLoading(false);
-    }).catch((error) => {
+    } catch (error) {
       console.error('Failed to load products:', error);
       setLoading(false);
-    });
+    }
   }, []);
 
   // Featured picks (ensure names match your data exactly)
@@ -76,7 +74,7 @@ export default function Home() {
     );
     list = list.sort((a, b) => (b.rating - a.rating) || (b.price - a.price));
     return list.slice(0, 4); // show top 4
-  }, [search]);
+  }, [products, search]);
 
   // Badge classes keyed by category TITLE
   const categoryBadge: Record<string, string> = {

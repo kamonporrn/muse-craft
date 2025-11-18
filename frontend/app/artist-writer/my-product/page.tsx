@@ -255,11 +255,15 @@ const StatusView = ({ productId }: { productId?: string }) => {
         {/* Progress Timeline */}
         <section className="flex justify-center items-center my-10 relative">
           <div className="absolute w-2/3 h-1 bg-gray-300 top-1/2 transform -translate-y-1/2 z-0">
-            <div className={`h-full transition-all duration-500 ${
-              approvalStatus === 'approved' ? 'bg-green-500' : 
-              approvalStatus === 'rejected' ? 'bg-red-500' : 
-              'bg-yellow-500'
-            }`} style={{ width: `${(approvalStep - 1) * 50}%` }}/>
+            <div 
+              className={`h-full transition-all duration-500 progress-bar-width ${
+                approvalStatus === 'approved' ? 'bg-green-500' : 
+                approvalStatus === 'rejected' ? 'bg-red-500' : 
+                'bg-yellow-500'
+              }`}
+              // eslint-disable-next-line react/forbid-dom-props
+              style={{ '--progress-width': `${(approvalStep - 1) * 50}%` } as React.CSSProperties}
+            />
           </div>
 
           {/* Steps */}

@@ -343,8 +343,7 @@ export default function ArtistWriterHome() {
                 <svg
                   width={chartWidth}
                   height={chartHeight}
-                  className="absolute bottom-0 h-full w-full"
-                  style={{ left: 0, right: 0 }}
+                  className="absolute bottom-0 h-full w-full svg-chart"
                   onMouseLeave={() => setHoveredPoint(null)}
                 >
               
@@ -406,8 +405,7 @@ export default function ArtistWriterHome() {
                     height={barHeight}
                     fill={isHovered ? "#c084fc" : (isLight ? "#a855f7" : "#9333ea")}
                     fillOpacity={isHovered ? "1" : (isLight ? "0.3" : "1")}
-                    className="cursor-pointer transition-all duration-200"
-                    style={isHovered ? { transform: 'scaleY(1.05)', transformOrigin: 'bottom' } : {}}
+                    className={`cursor-pointer transition-all duration-200 ${isHovered ? 'bar-hover-scale' : ''}`}
                     rx="2"
                     onMouseEnter={(e) => {
                       const svgElement = e.currentTarget.closest('svg');
@@ -432,14 +430,22 @@ export default function ArtistWriterHome() {
                 </svg>
 
                 {/* X-axis Labels (Days) - แสดงทุกวัน อยู่ล่างแกน X */}
-                <div className="absolute text-xs text-gray-400" style={{ 
-                  left: `${paddingLeft}px`, 
-                  right: `${paddingRight}px`,
-                  bottom: `2px`
-                }}>
+                <div 
+                  className="absolute text-xs text-gray-400 x-axis-labels"
+                  // eslint-disable-next-line react/forbid-dom-props
+                  style={{ 
+                    '--padding-left': `${paddingLeft}px`,
+                    '--padding-right': `${paddingRight}px`
+                  } as React.CSSProperties}
+                >
                   <div className="flex justify-between">
                     {salesData.map((d) => (
-                      <span key={d.day} className="text-center" style={{ width: `${100 / salesData.length}%` }}>
+                      <span 
+                        key={d.day} 
+                        className="text-center label-width"
+                        // eslint-disable-next-line react/forbid-dom-props
+                        style={{ '--label-width': `${100 / salesData.length}%` } as React.CSSProperties}
+                      >
                         {d.day}
                       </span>
                     ))}
@@ -447,10 +453,14 @@ export default function ArtistWriterHome() {
                 </div>
 
                 {/* Y-axis Labels (Sales) - แสดงจำนวนเงินจริง ตรงกับ grid lines */}
-                <div className="absolute left-0 text-xs text-gray-400 pl-2" style={{ 
-                  top: `${paddingTop}px`,
-                  bottom: `${paddingBottom}px`
-                }}>
+                <div 
+                  className="absolute left-0 text-xs text-gray-400 pl-2 y-axis-labels"
+                  // eslint-disable-next-line react/forbid-dom-props
+                  style={{ 
+                    '--padding-top': `${paddingTop}px`,
+                    '--padding-bottom': `${paddingBottom}px`
+                  } as React.CSSProperties}
+                >
                   <div className="h-full flex flex-col justify-between">
                     {[1, 0.75, 0.5, 0.25, 0].map((ratio) => (
                       <span key={ratio} className="leading-none">
@@ -465,14 +475,13 @@ export default function ArtistWriterHome() {
             {/* Tooltip - แสดงวันที่และราคาจริงเมื่อ cursor ชี้ไปที่แท่ง */}
             {hoveredPoint && (
               <div
-                className="absolute bg-gray-900 text-white rounded-lg px-4 py-3 shadow-2xl z-30 pointer-events-none border-2 border-purple-400"
+                className="absolute bg-gray-900 text-white rounded-lg px-4 py-3 shadow-2xl z-30 pointer-events-none border-2 border-purple-400 tooltip-position"
+                // eslint-disable-next-line react/forbid-dom-props
                 style={{
-                  left: `${hoveredPoint.x}px`,
-                  top: `${hoveredPoint.y - 90}px`,
-                  transform: 'translateX(-50%)',
-                  minWidth: '150px',
+                  '--tooltip-x': `${hoveredPoint.x}px`,
+                  '--tooltip-y': `${hoveredPoint.y - 90}px`,
                   animation: 'popUp 0.3s ease-out'
-                }}
+                } as React.CSSProperties}
               >
                 <div className="text-xs text-gray-300 mb-1.5">
                   {hoveredPoint.data.date.toLocaleDateString('en-US', { 

@@ -19,11 +19,14 @@ type CartItem = {
 };
 
 export default function ProductPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const params = useParams<{ slug: string | string[] }>();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Normalize slug to string
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
   // Check if user is signed in - redirect to login if not
   useEffect(() => {
@@ -37,13 +40,16 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (slug) {
-      getProductBySlug(slug as string).then((data) => {
+      try {
+        const data = getProductBySlug(slug);
         setProduct(data);
         setLoading(false);
-      }).catch((error) => {
+      } catch (error) {
         console.error('Failed to load product:', error);
         setLoading(false);
-      });
+      }
+    } else {
+      setLoading(false);
     }
   }, [slug]);
 

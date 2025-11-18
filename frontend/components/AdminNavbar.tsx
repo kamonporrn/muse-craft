@@ -194,13 +194,12 @@ export default function AdminNavbar({
       {mounted && open &&
         createPortal(
           <div
-            className="fixed z-50 pointer-events-auto"
+            className="fixed z-50 pointer-events-auto dropdown-position"
             // eslint-disable-next-line react/forbid-dom-props
             style={{ 
-              top: `${pos.top}px`, 
-              left: `${pos.left}px`, 
-              transform: "translateX(-100%)",
-            }}
+              '--dropdown-top': `${pos.top}px`,
+              '--dropdown-left': `${pos.left}px`
+            } as React.CSSProperties}
           >
             <div
               role="menu"
