@@ -16,7 +16,7 @@ import {
 import Navbar from "@/components/Navbar";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
-import { getProducts, Product, products, toSlug } from "@/lib/products";
+import { getProducts, Product, toSlug } from "@/lib/products";
 import { isSignedIn, getUserName } from "@/lib/auth";
 
 export default function Home() {
@@ -40,13 +40,14 @@ export default function Home() {
     setUserName(getUserName());
 
     // Fetch products from API
-    getProducts().then((data) => {
+    try {
+      const data = getProducts();
       setProducts(data);
       setLoading(false);
-    }).catch((error) => {
+    } catch (error) {
       console.error('Failed to load products:', error);
       setLoading(false);
-    });
+    }
   }, []);
 
   // Featured picks (ensure names match your data exactly)
