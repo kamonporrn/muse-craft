@@ -71,13 +71,13 @@ const fmtDate = (iso: string) => {
 export default function AdminArtworksPage() {
   // ===== Guard: admin เท่านั้น =====
   const [ok, setOk] = useState(false);
-  const [userName, setUserName] = useState("Admin01");
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     try {
       const role = localStorage.getItem("musecraft.role");
-      const name = localStorage.getItem("musecraft.userName") || "Admin01";
-      setUserName(name);
+      const name = localStorage.getItem("musecraft.userName");
+      setUserName(name ?? "");
       if (role === "admin") setOk(true);
       else window.location.replace("/signin");
     } catch {

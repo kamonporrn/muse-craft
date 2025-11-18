@@ -10,7 +10,6 @@ import { ensureCreatorUsersFromProducts } from "@/lib/users/seedCreatorsFromProd
 const pink   = "#ec4899";   // Artworks
 const green  = "#10b981";   // Creators
 const orange = "#f59e0b";   // Collectors
-const purple = "#8b5cf6";   // Auctions
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
