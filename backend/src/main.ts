@@ -44,8 +44,12 @@ async function bootstrap() {
     app.use(json({ limit: '10mb' }));
     
     // Enable CORS for frontend
+    const allowedOrigins = process.env.FRONTEND_URL 
+      ? (Array.isArray(process.env.FRONTEND_URL) ? process.env.FRONTEND_URL : [process.env.FRONTEND_URL])
+      : ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "https://muscraft.com"];
+    
     app.enableCors({
-      origin: process.env.FRONTEND_URL || ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+      origin: allowedOrigins,
       credentials: true,
     });
 
