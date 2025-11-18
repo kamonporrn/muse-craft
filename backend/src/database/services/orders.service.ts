@@ -62,7 +62,10 @@ export class OrdersService {
       updatedAt: new Date().toISOString(),
     };
     orders.push(newOrder);
-    this.db.writeFile("orders", orders);
+    const success = this.db.writeFile("orders", orders);
+    if (!success) {
+      throw new Error("Failed to save order to database");
+    }
     this.realtimeGateway?.broadcastOrderUpdate("create", newOrder);
     return newOrder;
   }
@@ -77,7 +80,10 @@ export class OrdersService {
       ...updates,
       updatedAt: new Date().toISOString(),
     };
-    this.db.writeFile("orders", orders);
+    const success = this.db.writeFile("orders", orders);
+    if (!success) {
+      throw new Error("Failed to update order in database");
+    }
     this.realtimeGateway?.broadcastOrderUpdate("update", orders[index]);
     return orders[index];
   }
@@ -94,7 +100,10 @@ export class OrdersService {
     const filtered = orders.filter((o) => o.id !== id);
     if (filtered.length === orders.length) return false;
 
-    this.db.writeFile("orders", filtered);
+    const success = this.db.writeFile("orders", filtered);
+    if (!success) {
+      throw new Error("Failed to delete order from database");
+    }
     this.realtimeGateway?.broadcastOrderUpdate("delete", id);
     return true;
   }

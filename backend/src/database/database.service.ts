@@ -29,14 +29,35 @@ export class DatabaseService {
   readFile<T>(filename: string, defaultValue: T[] = []): T[] {
     const filePath = path.join(this.dbDir, `${filename}.json`);
     try {
+      // Ensure directory exists
+      this.ensureDirectories();
+      
       if (!fs.existsSync(filePath)) {
-        this.writeFile(filename, defaultValue);
+        // Try to create file with default value
+        if (this.writeFile(filename, defaultValue)) {
+          return defaultValue;
+        }
+        // If write fails, still return default value
         return defaultValue;
       }
+      
       const data = fs.readFileSync(filePath, "utf-8");
-      return JSON.parse(data) as T[];
+      if (!data || data.trim() === '') {
+        this.logger.warn(`File ${filename} is empty, using default value`);
+        return defaultValue;
+      }
+      
+      const parsed = JSON.parse(data);
+      // Ensure it's an array
+      if (!Array.isArray(parsed)) {
+        this.logger.warn(`File ${filename} is not an array, using default value`);
+        return defaultValue;
+      }
+      
+      return parsed as T[];
     } catch (error) {
       this.logger.error(`Error reading file ${filename}: ${error instanceof Error ? error.message : String(error)}`);
+      // Return default value instead of throwing
       return defaultValue;
     }
   }
@@ -44,13 +65,20 @@ export class DatabaseService {
   /**
    * Write data to JSON file
    */
-  writeFile<T>(filename: string, data: T[]): void {
+  writeFile<T>(filename: string, data: T[]): boolean {
     const filePath = path.join(this.dbDir, `${filename}.json`);
     try {
-      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+      // Ensure directory exists before writing
+      this.ensureDirectories();
+      // Write file atomically using tmp file first
+      const tmpPath = `${filePath}.tmp`;
+      fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), "utf-8");
+      fs.renameSync(tmpPath, filePath);
+      return true;
     } catch (error) {
       this.logger.error(`Error writing file ${filename}: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+      // Don't throw - return false to indicate failure
+      return false;
     }
   }
 

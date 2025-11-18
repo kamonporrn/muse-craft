@@ -52,7 +52,10 @@ export class ProductsService {
       updatedAt: new Date().toISOString(),
     };
     products.push(newProduct);
-    this.db.writeFile("products", products);
+    const success = this.db.writeFile("products", products);
+    if (!success) {
+      throw new Error("Failed to save product to database");
+    }
     this.realtimeGateway?.broadcastProductUpdate("create", newProduct);
     return newProduct;
   }
@@ -85,7 +88,10 @@ export class ProductsService {
       ...updates,
       updatedAt: new Date().toISOString(),
     };
-    this.db.writeFile("products", products);
+    const success = this.db.writeFile("products", products);
+    if (!success) {
+      throw new Error("Failed to update product in database");
+    }
     this.realtimeGateway?.broadcastProductUpdate("update", products[index]);
     return products[index];
   }
@@ -95,7 +101,10 @@ export class ProductsService {
     const filtered = products.filter((p) => p.id !== id);
     if (filtered.length === products.length) return false;
 
-    this.db.writeFile("products", filtered);
+    const success = this.db.writeFile("products", filtered);
+    if (!success) {
+      throw new Error("Failed to delete product from database");
+    }
     this.realtimeGateway?.broadcastProductUpdate("delete", id);
     return true;
   }

@@ -41,7 +41,10 @@ export class UsersService {
       id: `u${Date.now()}`,
     };
     users.push(newUser);
-    this.db.writeFile("users", users);
+    const success = this.db.writeFile("users", users);
+    if (!success) {
+      throw new Error("Failed to save user to database");
+    }
     this.realtimeGateway?.broadcastUserUpdate("create", newUser);
     return newUser;
   }
@@ -67,7 +70,10 @@ export class UsersService {
     }
 
     users[index] = { ...users[index], ...updates };
-    this.db.writeFile("users", users);
+    const success = this.db.writeFile("users", users);
+    if (!success) {
+      throw new Error("Failed to update user in database");
+    }
     this.realtimeGateway?.broadcastUserUpdate("update", users[index]);
     return users[index];
   }
@@ -77,7 +83,10 @@ export class UsersService {
     const filtered = users.filter((u) => u.id !== id);
     if (filtered.length === users.length) return false;
 
-    this.db.writeFile("users", filtered);
+    const success = this.db.writeFile("users", filtered);
+    if (!success) {
+      throw new Error("Failed to delete user from database");
+    }
     // Also remove credentials
     this.removeCredentialByUser(id);
     this.realtimeGateway?.broadcastUserUpdate("delete", id);
@@ -100,7 +109,10 @@ export class UsersService {
   createCredential(credential: Credential): Credential {
     const creds = this.db.readFile<Credential>("credentials");
     creds.push(credential);
-    this.db.writeFile("credentials", creds);
+    const success = this.db.writeFile("credentials", creds);
+    if (!success) {
+      throw new Error("Failed to save credential to database");
+    }
     return credential;
   }
 
@@ -113,7 +125,10 @@ export class UsersService {
     if (index === -1) return null;
 
     creds[index] = { ...creds[index], ...updates };
-    this.db.writeFile("credentials", creds);
+    const success = this.db.writeFile("credentials", creds);
+    if (!success) {
+      throw new Error("Failed to update credential in database");
+    }
     return creds[index];
   }
 
@@ -122,7 +137,10 @@ export class UsersService {
     const filtered = creds.filter((c) => c.userId !== userId);
     if (filtered.length === creds.length) return false;
 
-    this.db.writeFile("credentials", filtered);
+    const success = this.db.writeFile("credentials", filtered);
+    if (!success) {
+      throw new Error("Failed to remove credential from database");
+    }
     return true;
   }
 

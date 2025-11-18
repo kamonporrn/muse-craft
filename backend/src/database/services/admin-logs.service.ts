@@ -39,7 +39,10 @@ export class AdminLogsService {
       atISO: new Date().toISOString(),
     };
     logs.push(newLog);
-    this.db.writeFile("admin-logs", logs);
+    const success = this.db.writeFile("admin-logs", logs);
+    if (!success) {
+      throw new Error("Failed to save admin log to database");
+    }
     this.realtimeGateway?.broadcastAdminLogUpdate("create", newLog);
     return newLog;
   }
@@ -49,7 +52,10 @@ export class AdminLogsService {
     const filtered = logs.filter((l) => l.id !== id);
     if (filtered.length === logs.length) return false;
 
-    this.db.writeFile("admin-logs", filtered);
+    const success = this.db.writeFile("admin-logs", filtered);
+    if (!success) {
+      throw new Error("Failed to delete admin log from database");
+    }
     this.realtimeGateway?.broadcastAdminLogUpdate("delete", id);
     return true;
   }
@@ -58,7 +64,10 @@ export class AdminLogsService {
     const logs = this.findAll();
     const filtered = logs.filter((l) => l.adminId !== adminId);
     const deletedCount = logs.length - filtered.length;
-    this.db.writeFile("admin-logs", filtered);
+    const success = this.db.writeFile("admin-logs", filtered);
+    if (!success) {
+      throw new Error("Failed to delete admin logs from database");
+    }
     return deletedCount;
   }
 }

@@ -554,42 +554,59 @@ const seedAdminLogs: AdminLog[] = [
 ];
 
 export function seedDatabase() {
-  console.log("🌱 Seeding database...");
+  try {
+    console.log("🌱 Seeding database...");
 
-  // Only seed if files don't exist
-  const existingUsers = db.readFile<User>("users");
-  if (existingUsers.length === 0) {
-    db.writeFile("users", seedUsers);
-    console.log("✅ Seeded users");
+    // Only seed if files don't exist
+    const existingUsers = db.readFile<User>("users");
+    if (existingUsers.length === 0) {
+      const success = db.writeFile("users", seedUsers);
+      if (success) {
+        console.log("✅ Seeded users");
+      } else {
+        console.error("❌ Failed to seed users");
+      }
+    }
+
+    const existingCreds = db.readFile<Credential>("credentials");
+    if (existingCreds.length === 0) {
+      const success = db.writeFile("credentials", seedCredentials);
+      if (success) {
+        console.log("✅ Seeded credentials");
+      } else {
+        console.error("❌ Failed to seed credentials");
+      }
+    }
+
+    // Don't seed products - only use real data from database
+    // const existingProducts = db.readFile<Product>("products");
+    // if (existingProducts.length === 0) {
+    //   db.writeFile("products", seedProducts);
+    //   console.log("✅ Seeded products");
+    // }
+
+    // Don't seed orders - only use real data from database
+    // const existingOrders = db.readFile<Order>("orders");
+    // if (existingOrders.length === 0) {
+    //   db.writeFile("orders", seedOrders);
+    //   console.log("✅ Seeded orders");
+    // }
+
+    const existingLogs = db.readFile<AdminLog>("admin-logs");
+    if (existingLogs.length === 0) {
+      const success = db.writeFile("admin-logs", seedAdminLogs);
+      if (success) {
+        console.log("✅ Seeded admin logs");
+      } else {
+        console.error("❌ Failed to seed admin logs");
+      }
+    }
+
+    console.log("✨ Database seeding completed!");
+  } catch (error) {
+    console.error("❌ Error during database seeding:", error);
+    // Don't throw - allow server to start even if seeding fails
   }
-
-  const existingCreds = db.readFile<Credential>("credentials");
-  if (existingCreds.length === 0) {
-    db.writeFile("credentials", seedCredentials);
-    console.log("✅ Seeded credentials");
-  }
-
-  // Don't seed products - only use real data from database
-  // const existingProducts = db.readFile<Product>("products");
-  // if (existingProducts.length === 0) {
-  //   db.writeFile("products", seedProducts);
-  //   console.log("✅ Seeded products");
-  // }
-
-  // Don't seed orders - only use real data from database
-  // const existingOrders = db.readFile<Order>("orders");
-  // if (existingOrders.length === 0) {
-  //   db.writeFile("orders", seedOrders);
-  //   console.log("✅ Seeded orders");
-  // }
-
-  const existingLogs = db.readFile<AdminLog>("admin-logs");
-  if (existingLogs.length === 0) {
-    db.writeFile("admin-logs", seedAdminLogs);
-    console.log("✅ Seeded admin logs");
-  }
-
-  console.log("✨ Database seeding completed!");
 }
 
 // Run if executed directly
