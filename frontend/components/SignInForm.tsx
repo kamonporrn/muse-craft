@@ -4,9 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, ChevronRight, Apple, Facebook, Github as Google } from "lucide-react";
-import { validateUser } from "@/lib/users";
 
-type Props = { onSignUpClick?: () => void; onForgotPasswordClick?: () => void };
+type Props = { onSignUpClick?: () => void };
 
 export default function SignInForm({ onSignUpClick }: Props) {
   const router = useRouter();
@@ -22,36 +21,66 @@ export default function SignInForm({ onSignUpClick }: Props) {
     setErr(null);
     setLoading(true);
 
-    await new Promise((r) => setTimeout(r, 300)); // เดโม่ latency
-    const user: any = validateUser(email, password);
+    try {
+      // Call backend API to validate user
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/users/auth/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    setLoading(false);
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 404) {
+          setErr("Invalid email or password.");
+          setLoading(false);
+          return;
+        }
+        throw new Error(`Failed to validate user: ${response.statusText}`);
+      }
 
-    if (!user) {
-      setErr("Invalid email or password.");
-      return;
+      const user = await response.json();
+
+      // Backend returns null if credentials are invalid
+      if (!user || user === null) {
+        setErr("Invalid email or password.");
+        setLoading(false);
+        return;
+      }
+
+      if (user.status === "Suspended") {
+        setErr("This account is suspended. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
+      if (user.status === "Deleted") {
+        setErr("This account has been deleted.");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ ทำให้ role สอดคล้องกับ guards (ซึ่งเช็ค 'admin' ตัวเล็ก)
+      const roleLower = String(user.role || "").toLowerCase(); // "Admin" -> "admin"
+
+      // เก็บ session
+      localStorage.setItem("musecraft.signedIn", "1");
+      localStorage.setItem("musecraft.userName", user.name);
+      localStorage.setItem("musecraft.userEmail", email);
+      localStorage.setItem("musecraft.userId", user.id);
+      localStorage.setItem("musecraft.role", roleLower);       // เก็บแบบตัวเล็ก
+      localStorage.setItem("musecraft.roleRaw", user.role);    // เผื่อใช้แสดงผล
+
+      // นำทาง
+      router.replace(roleLower === "admin" ? "/admin" : "/role");
+      router.refresh();
+    } catch (error) {
+      console.error('Sign in error:', error);
+      setErr("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    if (user._error === "suspended") {
-      setErr("This account is suspended. Please contact support.");
-      return;
-    }
-    if (user._error === "deleted") {
-      setErr("This account has been deleted.");
-      return;
-    }
-
-    // ✅ ทำให้ role สอดคล้องกับ guards (ซึ่งเช็ค 'admin' ตัวเล็ก)
-    const roleLower = String(user.role || "").toLowerCase(); // "Admin" -> "admin"
-
-    // เก็บ session (demo)
-    localStorage.setItem("musecraft.signedIn", "true");
-    localStorage.setItem("musecraft.userName", user.name);
-    localStorage.setItem("musecraft.role", roleLower);       // เก็บแบบตัวเล็ก
-    localStorage.setItem("musecraft.roleRaw", user.role);    // เผื่อใช้แสดงผล
-
-    // นำทาง
-    router.replace(roleLower === "admin" ? "/admin" : "/role");
-    router.refresh();
   };
 
   return (
@@ -134,11 +163,6 @@ export default function SignInForm({ onSignUpClick }: Props) {
           <SocialBtn icon={<Apple className="h-5 w-5" />} label="Sign in with Apple" />
         </div>
 
-        <p className="mt-3 text-center text-sm">
-          <Link href="/forgot-password" className="font-semibold text-purple-700 hover:underline">
-            Forgot Password?
-          </Link>
-        </p>
       </form>
     </div>
   );

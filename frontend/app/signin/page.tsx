@@ -26,10 +26,9 @@ export default function SignInPage() {
 
         {/* Right auth card */}
         <section className="flex items-center">
-          <div className="w-full rounded-2xl border border-gray-200/70 bg-white/90 backdrop-blur p-6 shadow-xl md:p-8">
+          <div className="w-full rounded-2xl border border-gray-200/70 bg-white/90 p-6 shadow-xl md:p-8" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
             <SignInForm
               onSignUpClick={() => (window.location.href = "/signup")}
-              onForgotPasswordClick={() => (window.location.href = "/signin?mode=forgot")}
             />
           </div>
         </section>

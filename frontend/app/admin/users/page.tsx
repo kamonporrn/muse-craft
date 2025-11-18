@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import AdminNavbar from "@/components/AdminNavbar";
 
+<<<<<<< HEAD
 // ดึง type + ฟังก์ชันจาก lib/users
 import {
   User,
@@ -17,6 +18,61 @@ import {
   restoreUser,
   deleteUserSoft,
 } from "@/lib/users";
+=======
+/* ---------- Types ---------- */
+type Role = "Creator" | "Collector" | "Admin";
+type Status = "Normal" | "Suspended" | "Deleted";
+
+type UserRow = {
+  id: string;
+  accountId: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  role: Role;
+  status: Status;
+};
+
+/* ---------- Mock data ---------- */
+const SEED: UserRow[] = [
+  {
+    id: "u1",
+    accountId: "#CRE-001",
+    name: "Olivia Chen",
+    email: "creator@email.com",
+    role: "Creator",
+    status: "Normal",
+    avatar: "/img/avatars/a1.jpg",
+  },
+  {
+    id: "u2",
+    accountId: "#CRE-002",
+    name: "Mason Park",
+    email: "creator2@email.com",
+    role: "Creator",
+    status: "Suspended",
+    avatar: "/img/avatars/a2.jpg",
+  },
+  {
+    id: "u3",
+    accountId: "#COL-001",
+    name: "Noah Brown",
+    email: "collector@email.com",
+    role: "Collector",
+    status: "Normal",
+    avatar: "/img/avatars/a3.jpg",
+  },
+  {
+    id: "u4",
+    accountId: "#AD-001",
+    name: "Admin01",
+    email: "admin01@email.com",
+    role: "Admin",
+    status: "Normal",
+    avatar: "/img/avatars/a4.jpg",
+  },
+];
+>>>>>>> 66632d1 (all backend(collect, artist), delete auction and verify)
 
 /* ---------- Helpers ---------- */
 const badge = (status: Status) => {
@@ -152,11 +208,19 @@ export default function AdminUsersPage() {
                   setFRole(e.target.value as RoleFilter);
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by role"
               >
+<<<<<<< HEAD
                 <option value="All">All</option>
                 <option value="Creator">Creator</option>
                 <option value="Collector">Collector</option>
                 <option value="Admin">Admin</option>
+=======
+                <option>All</option>
+                <option>Creator</option>
+                <option>Collector</option>
+                <option>Admin</option>
+>>>>>>> 66632d1 (all backend(collect, artist), delete auction and verify)
               </select>
             </div>
 
@@ -172,6 +236,7 @@ export default function AdminUsersPage() {
                   setFStatus(e.target.value as any);
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by status"
               >
                 <option value="All">All</option>
                 <option value="Normal">Normal</option>

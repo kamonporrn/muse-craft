@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Star, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { products, toSlug } from "@/lib/products";
+import { getProductsByCategory, toSlug, type Product as LibProduct } from "@/lib/products";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
+import { isSignedIn } from "@/lib/auth";
 
 // category -> badge classes (Tailwind)
 const categoryBadge: Record<string, string> = {
@@ -45,7 +46,6 @@ type Product = {
   name: string;
   author: string;
   price: number;
-  rating: number;
   img: string;
   category: Category;
 };
@@ -54,6 +54,15 @@ export default function CategoryPage() {
   const params = useParams<{ slug?: string }>();
   const router = useRouter();
   const [search, setSearch] = useState("");
+
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!isSignedIn()) {
+        router.push("/signin");
+      }
+    }
+  }, [router]);
   
   const initialCategory = useMemo(() => {
     const slug = (params?.slug || "").toLowerCase();
@@ -62,19 +71,39 @@ export default function CategoryPage() {
 
   const [activeCategory, setActiveCategory] = useState<Category>(initialCategory as Category);
   const [query, setQuery] = useState("");
+  const [products, setProducts] = useState<LibProduct[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setActiveCategory(initialCategory as Category);
   }, [initialCategory]);
 
+  useEffect(() => {
+    setLoading(true);
+    getProductsByCategory(activeCategory).then((data) => {
+      setProducts(data);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Failed to load products by category:', error);
+      setProducts([]);
+      setLoading(false);
+    });
+  }, [activeCategory]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return products.filter(
-      (p) =>
-        p.category === activeCategory &&
-        (!q || p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q))
-    );
-  }, [activeCategory, query]);
+    return products.filter((p) => {
+      // Only show approved products (or products without status for backward compatibility)
+      const isApproved = !p.status || p.status === "approved";
+      if (!isApproved) return false;
+      
+      // Filter by search query if provided
+      if (q) {
+        return p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [products, query]);
 
   function addToCart(p: Product) {
     console.log("Add to cart:", p.name);
@@ -119,21 +148,32 @@ export default function CategoryPage() {
         </div>
 
         {/* Product cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filtered.map((p) => (
+        {loading ? (
+          <p className="text-gray-500">Loading products...</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filtered.map((p) => (
             <article
               key={p.name}
               className="group rounded-2xl border border-gray-200 overflow-hidden hover:shadow-sm transition bg-white"
             >
               <div className="relative">
                 <Link href={`/product/${toSlug(p.name)}`} className="block">
-                  <Image
-                    src={p.img}
-                    alt={p.name}
-                    width={640}
-                    height={420}
-                    className="w-full h-56 object-cover"
-                  />
+                  {p.img && p.img.startsWith('data:') ? (
+                    <img
+                      src={p.img}
+                      alt={p.name}
+                      className="w-full h-56 object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={p.img}
+                      alt={p.name}
+                      width={640}
+                      height={420}
+                      className="w-full h-56 object-cover"
+                    />
+                  )}
                 </Link>
 
                 {/* category badge using the map */}
@@ -146,25 +186,21 @@ export default function CategoryPage() {
               </div>
 
               <div className="p-4">
-                <h3 className="font-semibold text-lg">
-                  <Link href={`/product/${toSlug(p.name)}`} className="hover:underline">
-                    {p.name}
-                  </Link>
+                <h3 
+                  className="font-semibold text-lg cursor-pointer hover:underline"
+                  onClick={() => {
+                    // Check if user is signed in
+                    if (!isSignedIn()) {
+                      router.push("/signin");
+                    } else {
+                      router.push(`/product/${toSlug(p.name)}`);
+                    }
+                  }}
+                >
+                  {p.name}
                 </h3>
                 <p className="text-sm text-gray-500">{p.author}</p>
 
-                <div className="mt-2 text-sm font-semibold">Ranking</div>
-                <div className="flex items-center gap-1 text-purple-600">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${
-                        i < p.rating ? "fill-purple-500 text-purple-500" : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                  <span className="ml-1 text-gray-500 text-sm">(20)</span>
-                </div>
 
                 <div className="mt-4 flex items-center justify-between">
                   <button
@@ -183,8 +219,9 @@ export default function CategoryPage() {
                 </div>
               </div>
             </article>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

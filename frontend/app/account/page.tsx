@@ -6,11 +6,21 @@ import Link from "next/link";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { MapPin, Wallet, Truck, MessageSquareMore, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { isSignedIn } from "@/lib/auth";
 
 export default function AccountPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
+
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!isSignedIn()) {
+        router.push("/signin");
+      }
+    }
+  }, [router]);
 
   return (
     <main className="min-h-screen bg-[#f3e8ff] text-gray-900">

@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Paintbrush, Heart, CheckCircle2 } from "lucide-react";
+import { User, Paintbrush, CheckCircle2 } from "lucide-react";
 
-type RoleId = "customer" | "creator" | "charity";
+type RoleId = "customer" | "creator";
 
 type Role = {
   id: RoleId;
@@ -25,16 +25,9 @@ const ROLES: Role[] = [
   {
     id: "creator",
     title: "Creator",
-    desc: "Upload your works, set prices, or start auctions and track performance.",
+    desc: "Upload your works, set prices, and track performance.",
     icon: Paintbrush,
     primaryRoute: "/artist-writer",
-  },
-  {
-    id: "charity",
-    title: "Charity",
-    desc: "Manage your account and purchases related to charity programs.",
-    icon: Heart,
-    primaryRoute: "/charity",
   },
 ];
 
@@ -53,7 +46,7 @@ export default function RoleSelectPage() {
       prev === "bidder" ? "customer" :
       prev;
 
-    if (["customer", "creator", "charity"].includes(mapped)) {
+    if (["customer", "creator"].includes(mapped)) {
       setSelected(mapped as RoleId);
       if (mapped !== prev) {
         window.localStorage.setItem("musecraft.role", mapped);
@@ -84,7 +77,7 @@ export default function RoleSelectPage() {
 
   return (
     <div className="min-h-screen bg-purple-50 flex items-center justify-center px-6">
-      <main className="w-full max-w-6xl rounded-2xl bg-white/90 backdrop-blur border border-purple-100 shadow-xl p-8">
+      <main className="w-full max-w-6xl rounded-2xl bg-white/90 border border-purple-100 shadow-xl p-8" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Choose Your Role</h1>
           <p className="mt-2 text-gray-600">
@@ -93,7 +86,7 @@ export default function RoleSelectPage() {
         </header>
 
         <section
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 place-items-center"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-6 place-items-center"
           aria-label="Role options"
         >
           {ROLES.map((role) => {

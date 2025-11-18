@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 /* ---------------- Types ---------------- */
 type OrderStatus = "pending" | "processing" | "shipping" | "delivered" | "history";
@@ -33,13 +33,6 @@ type ShippingMeta = {
   estimateText?: string;
 };
 
-type Review = {
-  byName: string;
-  avatarUrl?: string;
-  rating: number; // 0–5
-  max?: number;   // default 5
-};
-
 type Order = {
   id: string;
   shop: string;
@@ -48,7 +41,6 @@ type Order = {
   shippingFee: number;
   delivery?: Delivery;
   shippingMeta?: ShippingMeta;
-  review?: Review;
 };
 
 /* ---------------- Mock Data ---------------- */
@@ -247,12 +239,6 @@ const INITIAL_ORDERS: Order[] = [
         "https://www.flashexpress.co.th/tracking/?search=TH2309876543D",
       estimateText: "This delivery should be completed within 5–7 days.",
     },
-    review: {
-      byName: "Mr. Somchai Jaodee",
-      avatarUrl: "/avatar.jpeg",
-      rating: 5,
-      max: 5,
-    },
   },
 ];
 
@@ -273,41 +259,16 @@ export default function OrdersPage() {
   const [active, setActive] = useState<OrderStatus>("shipping");
   const [ordersState, setOrdersState] = useState<Order[]>(INITIAL_ORDERS);
 
-  // rating modal state
-  const [ratingOpen, setRatingOpen] = useState(false);
-  const [ratingOrder, setRatingOrder] = useState<Order | null>(null);
-  const [ratingValue, setRatingValue] = useState<number>(0);
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const signedIn = localStorage.getItem("musecraft.signedIn") === "1";
+      if (!signedIn) {
+        router.push("/signin");
+      }
+    }
+  }, [router]);
 
-  function openRating(order: Order) {
-    setRatingOrder(order);
-    setRatingValue(order.review?.rating ?? 0);
-    setRatingOpen(true);
-  }
-  function closeRating() {
-    setRatingOpen(false);
-    setRatingOrder(null);
-    setRatingValue(0);
-  }
-  function submitRating() {
-    if (!ratingOrder) return;
-    setOrdersState(prev =>
-      prev.map(o =>
-        o.id === ratingOrder.id
-          ? {
-              ...o,
-              status: o.status === "delivered" ? "history" : o.status,
-              review: {
-                byName: CURRENT_USER,
-                rating: ratingValue,
-                max: 5,
-                avatarUrl: "/avatar.jpeg",
-              },
-            }
-          : o
-      )
-    );
-    closeRating();
-  }
 
   const orders = useMemo(
     () => ordersState.filter((o) => o.status === active),
@@ -319,6 +280,31 @@ export default function OrdersPage() {
       prev.map(o => (o.id === orderId ? { ...o, status: "delivered" } : o))
     );
     alert("Thanks! Order has been marked as delivered.");
+  };
+
+  const handlePayment = async (orderId: string) => {
+    // Update order status to processing when payment is made
+    try {
+      const response = await fetch(`http://localhost:3000/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'confirmed' }), // confirmed = processing for collector, to confirm for artist
+      });
+      if (response.ok) {
+        // Update local state
+        setOrdersState(prev =>
+          prev.map(o => (o.id === orderId ? { ...o, status: "processing" } : o))
+        );
+        alert(`Payment successful! Order is now processing.`);
+      } else {
+        alert(`Payment failed. Please try again.`);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert(`Payment failed. Please try again.`);
+    }
   };
 
   return (
@@ -390,13 +376,12 @@ export default function OrdersPage() {
             ) : (
               orders.map((o) =>
                 active === "pending" ? (
-                  <PendingCard key={o.id} order={o} />
+                  <PendingCard key={o.id} order={o} onPay={handlePayment} />
                 ) : (
                   <FulfillmentCard
                     key={o.id}
                     order={o}
                     onConfirm={() => confirmReceipt(o.id)}
-                    onRate={() => openRating(o)}
                   />
                 )
               )
@@ -405,16 +390,6 @@ export default function OrdersPage() {
         </section>
       </div>
 
-      {/* Rating Modal */}
-      {ratingOpen && ratingOrder && (
-        <RatingModal
-          order={ratingOrder}
-          value={ratingValue}
-          onChange={setRatingValue}
-          onClose={closeRating}
-          onSubmit={submitRating}
-        />
-      )}
     </main>
   );
 }
@@ -422,7 +397,7 @@ export default function OrdersPage() {
 /* ---------------- Cards ---------------- */
 
 // Pending
-function PendingCard({ order }: { order: Order }) {
+function PendingCard({ order, onPay }: { order: Order; onPay?: (orderId: string) => void }) {
   const item = order.items[0];
   const amount = item.unitPrice * item.qty;
 
@@ -454,7 +429,13 @@ function PendingCard({ order }: { order: Order }) {
           </div>
           <button
             className="mt-3 rounded-md bg-purple-600 px-4 py-2 text-white text-sm font-semibold hover:bg-purple-700"
-            onClick={() => alert(`Paying ${item.product} (฿${formatTHB(amount)})`)}
+            onClick={() => {
+              if (onPay) {
+                onPay(order.id);
+              } else {
+                alert(`Paying ${item.product} (฿${formatTHB(amount)})`);
+              }
+            }}
           >
             Pay Now
           </button>
@@ -468,11 +449,9 @@ function PendingCard({ order }: { order: Order }) {
 function FulfillmentCard({
   order,
   onConfirm,
-  onRate,
 }: {
   order: Order;
   onConfirm?: () => void;
-  onRate?: () => void;
 }) {
   const merchandiseSubtotal = order.items.reduce(
     (s, it) => s + it.unitPrice * it.qty,
@@ -599,184 +578,10 @@ function FulfillmentCard({
         </div>
       )}
 
-      {isDelivered && (
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-gray-200 pt-3">
-          <div className="text-xs text-gray-600">
-            <p className="font-medium">Are you satisfied with the product?</p>
-            <p>Share your feedback by rating this product.</p>
-          </div>
-          <button
-            className="rounded-md bg-purple-600 px-4 py-2 text-white text-sm font-semibold hover:bg-purple-700"
-            onClick={onRate}
-          >
-            Rate this product
-          </button>
-        </div>
-      )}
-
-      {/* History footer: avatar + name + rating */}
-      {isHistory && order.review && (
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-gray-200 pt-3">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-200">
-              {order.review.avatarUrl ? (
-                <Image
-                  src={order.review.avatarUrl}
-                  alt={order.review.byName}
-                  width={32}
-                  height={32}
-                  className="h-full w-full object-cover"
-                />
-              ) : null}
-            </div>
-            <span className="text-sm text-gray-800">{order.review.byName}</span>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1.5">
-            <StarRating value={order.review.rating} max={order.review.max ?? 5} />
-            <span className="text-sm font-semibold text-gray-700">
-              {order.review.rating}/{order.review.max ?? 5}
-            </span>
-          </div>
-        </div>
-      )}
     </article>
   );
 }
 
-/* ---------------- Rating widgets & Modal ---------------- */
-function StarRating({ value, max = 5 }: { value: number; max?: number }) {
-  return (
-    <div className="flex items-center">
-      {Array.from({ length: max }).map((_, i) => (
-        <svg
-          key={i}
-          className={`h-4 w-4 ${i < value ? "fill-yellow-400" : "fill-gray-300"}`}
-          viewBox="0 0 20 20"
-        >
-          <path d="M10 15.27l-5.18 3.05 1.4-5.9L1 7.97l6-.52L10 2l3 5.45 6 .52-5.22 4.45 1.4 5.9z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-function RatingModal({
-  order,
-  value,
-  onChange,
-  onClose,
-  onSubmit,
-}: {
-  order: Order;
-  value: number;
-  onChange: (n: number) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}) {
-  const item = order.items[0];
-
-  return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="absolute left-1/2 top-1/2 w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white shadow-xl"
-      >
-        <div className="flex items-center justify-between px-5 py-4">
-          <h3 className="text-lg font-bold">Rate the product</h3>
-          <button aria-label="Close" className="rounded-full p-2 hover:bg-gray-100" onClick={onClose}>
-            ✕
-          </button>
-        </div>
-
-        <hr />
-
-        <div className="px-5 py-4">
-          <div className="text-sm font-semibold mb-3">{order.shop}</div>
-
-          <div className="flex gap-3">
-            <div className="h-14 w-14 rounded-md bg-gray-100 overflow-hidden grid place-items-center shrink-0">
-              <Image src={item.img} alt={item.product} width={56} height={56} />
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-medium text-gray-900 truncate">{item.product}</div>
-              {item.desc && <div className="text-xs text-gray-500 truncate">{item.desc}</div>}
-              <div className="text-xs text-gray-500">x {item.qty}</div>
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-xl bg-gray-50 p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full overflow-hidden bg-purple-100 grid place-items-center text-purple-600">
-                <span className="text-lg">👤</span>
-              </div>
-              <div className="text-sm font-medium text-gray-800 truncate">
-                {order.review?.byName ?? CURRENT_USER}
-              </div>
-            </div>
-
-            <div className="mt-3 flex items-center gap-2">
-              <StarPicker value={value} onChange={onChange} />
-              <span className="text-sm text-gray-600">{value}/5</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 px-5 py-4">
-          <button className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="rounded-md bg-purple-600 px-4 py-2 text-white text-sm font-semibold hover:bg-purple-700 disabled:opacity-50"
-            disabled={value === 0}
-            onClick={onSubmit}
-          >
-            Submit
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StarPicker({
-  value,
-  onChange,
-  max = 5,
-}: {
-  value: number;
-  onChange: (n: number) => void;
-  max?: number;
-}) {
-  const [hover, setHover] = useState<number | null>(null);
-  const active = hover ?? value;
-
-  return (
-    <div className="flex items-center">
-      {Array.from({ length: max }).map((_, i) => {
-        const idx = i + 1;
-        const filled = idx <= active;
-        return (
-          <button
-            key={idx}
-            type="button"
-            aria-label={`Rate ${idx}`}
-            className="p-1"
-            onMouseEnter={() => setHover(idx)}
-            onMouseLeave={() => setHover(null)}
-            onClick={() => onChange(idx)}
-          >
-            <svg viewBox="0 0 20 20" className={`h-6 w-6 ${filled ? "fill-yellow-400" : "fill-gray-300"}`}>
-              <path d="M10 15.27l-5.18 3.05 1.4-5.9L1 7.97l6-.52L10 2l3 5.45 6 .52-5.22 4.45 1.4 5.9z" />
-            </svg>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 /* ---------------- Misc ---------------- */
 function BlankState({ status }: { status: OrderStatus }) {
