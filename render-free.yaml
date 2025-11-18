@@ -1,0 +1,34 @@
+services:
+  # Backend API Service (Free Tier)
+  - type: web
+    name: musecraft-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        value: https://musecraft-frontend.onrender.com
+    healthCheckPath: /
+
+  # Frontend Web Service (Free Tier)
+  - type: web
+    name: musecraft-frontend
+    env: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://musecraft-backend.onrender.com
+      - key: PORT
+        value: 10000
+
