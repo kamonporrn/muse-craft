@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaSearch, FaBox, FaTags, FaImage, FaClock, FaArrowLeft } from "react-icons/fa";
@@ -351,7 +351,7 @@ const StatusView = ({ productId }: { productId?: string }) => {
   );
 };
 
-export default function Page() {
+function PageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("Live");
@@ -651,5 +651,13 @@ export default function Page() {
           )}
         </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-purple-50 flex items-center justify-center">Loading...</div>}>
+      <PageContent />
+    </Suspense>
   );
 }

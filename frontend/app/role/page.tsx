@@ -60,8 +60,8 @@ export default function RoleSelectPage() {
   );
 
   const saveAndGo = useCallback((role: Role) => {
-    // mark as signed-in (demo)
-    window.localStorage.setItem("musecraft.signedIn", "1");
+    // mark as signed-in (ใช้ "true" แทน "1" เพื่อให้สอดคล้องกับ lib/users/auth)
+    window.localStorage.setItem("musecraft.signedIn", "true");
     // save chosen role
     window.localStorage.setItem("musecraft.role", role.id);
     // (optional) ชื่อผู้ใช้ mock

@@ -96,7 +96,7 @@ export default function AdminDashboard() {
       const collectors = allUsers.filter((u) => u.role === "Collector").length;
 
       // 3) artworks จาก lib/products ผ่าน getProducts()
-      const allProducts = await getProducts();
+      const allProducts = getProducts();
       const artworks = allProducts.length;
 
       setTotals({ artworks, creators, collectors });

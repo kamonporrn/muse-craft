@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useCallback, FormEvent } from "react";
 import { Bell, ShoppingCart, ChevronDown, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { clearSession } from "@/lib/auth";
 
 type NavbarSignedInProps = {
   search: string;
@@ -39,13 +40,11 @@ export default function NavbarSignedIn({
   );
 
   const handleSignOut = useCallback(() => {
-    localStorage.removeItem("musecraft.signedIn");
-    localStorage.removeItem("musecraft.userName");
-    localStorage.removeItem("musecraft.role");
+    clearSession();
     onSignOut?.();
-    router.replace("/");
-    router.refresh();
-  }, [onSignOut, router]);
+    // ใช้ window.location.href เพื่อ force reload และ redirect ไปหน้า signin
+    window.location.href = "/signin";
+  }, [onSignOut]);
 
   return (
     <header className="flex justify-between items-center px-20 py-2 bg-purple-50 shadow-sm">

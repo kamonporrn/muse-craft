@@ -37,16 +37,15 @@ export default function SearchPage({
     }
 
     setLoading(true);
-    searchProductsByQuery(q).then((data) => {
-      // Only show approved products (or products without status for backward compatibility)
-      const approved = data.filter((p) => !p.status || p.status === "approved");
-      setResults(approved);
+    try {
+      const data = searchProductsByQuery(q);
+      setResults(data);
       setLoading(false);
-    }).catch((error) => {
+    } catch (error) {
       console.error('Failed to search products:', error);
       setResults([]);
       setLoading(false);
-    });
+    }
   }, [query]);
 
   return (

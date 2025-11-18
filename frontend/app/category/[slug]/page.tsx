@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import { getProductsByCategory, toSlug, type Product as LibProduct } from "@/lib/products";
+import { listProductsByCategory, toSlug, type Product as LibProduct } from "@/lib/products";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { isSignedIn } from "@/lib/auth";
 
@@ -80,23 +80,20 @@ export default function CategoryPage() {
 
   useEffect(() => {
     setLoading(true);
-    getProductsByCategory(activeCategory).then((data) => {
+    try {
+      const data = listProductsByCategory(activeCategory);
       setProducts(data);
       setLoading(false);
-    }).catch((error) => {
+    } catch (error) {
       console.error('Failed to load products by category:', error);
       setProducts([]);
       setLoading(false);
-    });
+    }
   }, [activeCategory]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products.filter((p) => {
-      // Only show approved products (or products without status for backward compatibility)
-      const isApproved = !p.status || p.status === "approved";
-      if (!isApproved) return false;
-      
       // Filter by search query if provided
       if (q) {
         return p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q);

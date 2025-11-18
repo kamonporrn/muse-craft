@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { fetchCurrentUser, type ApiUser } from "@/lib/api";
+import { clearSession } from "@/lib/auth";
 
 export default function SettingPage() {
   const [user, setUser] = useState<ApiUser | null>(null);
@@ -201,8 +202,8 @@ export default function SettingPage() {
                       </span>
                       <button 
                         onClick={() => {
-                          // Clear all localStorage
-                          localStorage.clear();
+                          // Clear session using clearSession() from lib/auth
+                          clearSession();
                           // Redirect to sign in
                           window.location.href = '/signin';
                         }}

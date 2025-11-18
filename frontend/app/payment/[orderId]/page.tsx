@@ -1,13 +1,13 @@
 // app/payment/[orderId]/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { Copy, Check, Download, Timer, Info, ArrowLeft } from "lucide-react";
 import { isSignedIn } from "@/lib/auth";
 
-export default function PaymentQRPage() {
+function PaymentQRPageContent() {
   const { orderId } = useParams<{ orderId: string }>();
   const sp = useSearchParams();
   const router = useRouter();
@@ -244,5 +244,13 @@ function MetaRow({
         </button>
       )}
     </div>
+  );
+}
+
+export default function PaymentQRPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-purple-100 flex items-center justify-center">Loading...</div>}>
+      <PaymentQRPageContent />
+    </Suspense>
   );
 }

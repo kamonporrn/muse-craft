@@ -8,6 +8,9 @@ import {
   Param,
   Query,
   NotFoundException,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
 } from "@nestjs/common";
 import { ProductsService } from "../database/services/products.service";
 import { Product } from "../database/entities/product.entity";
@@ -47,12 +50,26 @@ export class ProductsController {
 
   @Get(":id")
   findOne(@Param("id") id: string) {
-    return this.productsService.findById(id);
+    const product = this.productsService.findById(id);
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+    return product;
   }
 
   @Post()
   create(@Body() product: Omit<Product, "id" | "createdAt" | "updatedAt">) {
-    return this.productsService.create(product);
+    try {
+      if (!product.name || !product.author || !product.category || product.price === undefined) {
+        throw new BadRequestException("Missing required fields: name, author, category, price");
+      }
+      return this.productsService.create(product);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(error instanceof Error ? error.message : "Failed to create product");
+    }
   }
 
   // Put :id/status BEFORE :id to ensure proper route matching
@@ -70,12 +87,20 @@ export class ProductsController {
 
   @Put(":id")
   update(@Param("id") id: string, @Body() updates: Partial<Product>) {
-    return this.productsService.update(id, updates);
+    const result = this.productsService.update(id, updates);
+    if (!result) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+    return result;
   }
 
   @Delete(":id")
   delete(@Param("id") id: string) {
-    return this.productsService.delete(id);
+    const result = this.productsService.delete(id);
+    if (!result) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+    return { success: true, message: `Product ${id} deleted successfully` };
   }
 }
 

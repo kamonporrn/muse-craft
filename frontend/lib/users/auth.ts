@@ -35,6 +35,8 @@ export function clearSession() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("musecraft.signedIn");
   localStorage.removeItem("musecraft.userName");
+  localStorage.removeItem("musecraft.userEmail");
+  localStorage.removeItem("musecraft.userId");
   localStorage.removeItem("musecraft.role");
   localStorage.removeItem("musecraft.roleRaw");
 }

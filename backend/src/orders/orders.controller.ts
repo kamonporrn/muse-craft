@@ -7,6 +7,10 @@ import {
   Body,
   Param,
   Query,
+  NotFoundException,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
 } from "@nestjs/common";
 import { OrdersService } from "../database/services/orders.service";
 import { Order } from "../database/entities/order.entity";
@@ -28,17 +32,35 @@ export class OrdersController {
 
   @Get(":id")
   findOne(@Param("id") id: string) {
-    return this.ordersService.findById(id);
+    const order = this.ordersService.findById(id);
+    if (!order) {
+      throw new NotFoundException(`Order with id ${id} not found`);
+    }
+    return order;
   }
 
   @Post()
   create(@Body() order: Omit<Order, "id" | "dateISO" | "createdAt" | "updatedAt">) {
-    return this.ordersService.create(order);
+    try {
+      if (!order.buyerId || !order.items || order.items.length === 0) {
+        throw new BadRequestException("Missing required fields: buyerId, items");
+      }
+      return this.ordersService.create(order);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new BadRequestException(error instanceof Error ? error.message : "Failed to create order");
+    }
   }
 
   @Put(":id")
   update(@Param("id") id: string, @Body() updates: Partial<Order>) {
-    return this.ordersService.update(id, updates);
+    const result = this.ordersService.update(id, updates);
+    if (!result) {
+      throw new NotFoundException(`Order with id ${id} not found`);
+    }
+    return result;
   }
 
   @Put(":id/status")
@@ -46,12 +68,23 @@ export class OrdersController {
     @Param("id") id: string,
     @Body() body: { status: Order["status"] }
   ) {
-    return this.ordersService.updateStatus(id, body.status);
+    if (!body.status) {
+      throw new BadRequestException("Status is required");
+    }
+    const result = this.ordersService.updateStatus(id, body.status);
+    if (!result) {
+      throw new NotFoundException(`Order with id ${id} not found`);
+    }
+    return result;
   }
 
   @Delete(":id")
   delete(@Param("id") id: string) {
-    return this.ordersService.delete(id);
+    const result = this.ordersService.delete(id);
+    if (!result) {
+      throw new NotFoundException(`Order with id ${id} not found`);
+    }
+    return { success: true, message: `Order ${id} deleted successfully` };
   }
 }
 

@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { clearSession } from "@/lib/auth";
 
 type AdminNavbarProps = {
   userName?: string;
@@ -45,7 +46,7 @@ export default function AdminNavbar({
     }
     
     try {
-      const signedIn = localStorage.getItem("musecraft.signedIn");
+      const signedIn = localStorage.getItem("musecraft.signedIn") === "true";
       const n = localStorage.getItem("musecraft.userName") || "Admin01";
       const r = localStorage.getItem("musecraft.role") || "";
       setUserName(userNameProp ?? n);
@@ -126,18 +127,11 @@ export default function AdminNavbar({
     setIsSigningOut(true);
     setOpen(false);
     
-    // ลบ localStorage ทั้งหมดที่เกี่ยวข้องกับ session
+    // ลบ session ผ่าน clearSession() เพื่อให้สอดคล้องกัน
     try {
-      localStorage.clear(); // ลบทั้งหมดเพื่อความแน่ใจ
-      // หรือลบทีละตัวถ้าต้องการ
-      localStorage.removeItem("musecraft.signedIn");
-      localStorage.removeItem("musecraft.userName");
-      localStorage.removeItem("musecraft.userEmail");
-      localStorage.removeItem("musecraft.userId");
-      localStorage.removeItem("musecraft.role");
-      localStorage.removeItem("musecraft.roleRaw");
+      clearSession();
     } catch (error) {
-      console.error("Error clearing localStorage:", error);
+      console.error("Error clearing session:", error);
     }
     
     // เรียก onSignOut callback ถ้ามี

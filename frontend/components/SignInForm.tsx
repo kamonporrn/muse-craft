@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, ChevronRight, Apple, Facebook, Github as Google } from "lucide-react";
+import { setSessionFromUser } from "@/lib/auth";
 
 type Props = { onSignUpClick?: () => void };
 
@@ -64,13 +65,11 @@ export default function SignInForm({ onSignUpClick }: Props) {
       // ✅ ทำให้ role สอดคล้องกับ guards (ซึ่งเช็ค 'admin' ตัวเล็ก)
       const roleLower = String(user.role || "").toLowerCase(); // "Admin" -> "admin"
 
-      // เก็บ session
-      localStorage.setItem("musecraft.signedIn", "1");
-      localStorage.setItem("musecraft.userName", user.name);
+      // เก็บ session ผ่าน setSessionFromUser (ใช้ "true" แทน "1")
+      setSessionFromUser(user);
+      // เก็บข้อมูลเพิ่มเติมที่จำเป็น
       localStorage.setItem("musecraft.userEmail", email);
       localStorage.setItem("musecraft.userId", user.id);
-      localStorage.setItem("musecraft.role", roleLower);       // เก็บแบบตัวเล็ก
-      localStorage.setItem("musecraft.roleRaw", user.role);    // เผื่อใช้แสดงผล
 
       // นำทาง
       router.replace(roleLower === "admin" ? "/admin" : "/role");

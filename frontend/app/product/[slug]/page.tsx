@@ -39,7 +39,7 @@ export default function ProductPage() {
   }, [router]);
 
   useEffect(() => {
-    if (slug) {
+    if (slug && typeof slug === "string") {
       try {
         const data = getProductBySlug(slug);
         setProduct(data);

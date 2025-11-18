@@ -262,7 +262,7 @@ export default function OrdersPage() {
   // Check if user is signed in - redirect to login if not
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const signedIn = localStorage.getItem("musecraft.signedIn") === "1";
+      const signedIn = localStorage.getItem("musecraft.signedIn") === "true";
       if (!signedIn) {
         router.push("/signin");
       }
