@@ -3,15 +3,16 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import AdminNavbar from "@/components/AdminNavbar";
 import { getUserById, listArtworksByCreator } from "@/lib/users";
 import { toSlug } from "@/lib/products";
 
-export default function CreatorArtworksPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function CreatorArtworksPage() {
+  // ===== Get params from useParams (client component) =====
+  const params = useParams<{ id: string }>();
+  const userId = params?.id as string | undefined;
+
   // guard & profile
   const [ok, setOk] = useState(false);
   const [adminName, setAdminName] = useState("Admin01");
@@ -29,7 +30,7 @@ export default function CreatorArtworksPage({
     }
   }, []);
 
-  const user = getUserById(params.id);
+  const user = userId ? getUserById(userId) : null;
   const items = user ? listArtworksByCreator(user.name) : [];
 
   if (!ok) {
