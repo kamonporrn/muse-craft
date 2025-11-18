@@ -7,9 +7,10 @@ import { getProducts } from "@/lib/products";
 import { ensureCreatorUsersFromProducts } from "@/lib/users/seedCreatorsFromProducts";
 
 /** สีหลัก */
-const pink = "#ec4899";   // Artworks
-const green = "#10b981";  // Creators
-const orange = "#f59e0b"; // Collectors
+const pink   = "#ec4899";   // Artworks
+const green  = "#10b981";   // Creators
+const orange = "#f59e0b";   // Collectors
+const purple = "#8b5cf6";   // Auctions
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -114,42 +115,18 @@ export default function AdminDashboard() {
   );
 
   // ค่าปัจจุบัน = วันสุดท้ายของสัปดาห์ | Δ = last - first
-  const nowStats = useMemo(
-    () => [
-      {
-        key: "artworks",
-        label: "Total Artworks",
-        color: pink,
-        value: weekly.artworks.at(-1) ?? 0,
-        delta: (weekly.artworks.at(-1) ?? 0) - (weekly.artworks[0] ?? 0),
-      },
-      {
-        key: "creators",
-        label: "Total Creators",
-        color: green,
-        value: weekly.creators.at(-1) ?? 0,
-        delta: (weekly.creators.at(-1) ?? 0) - (weekly.creators[0] ?? 0),
-      },
-      {
-        key: "collectors",
-        label: "Total Collectors",
-        color: orange,
-        value: weekly.collectors.at(-1) ?? 0,
-        delta: (weekly.collectors.at(-1) ?? 0) - (weekly.collectors[0] ?? 0),
-      },
-    ],
-    [weekly]
-  );
+  const nowStats = [
+    { key: "artworks",   label: "Total Artworks",   color: pink,   value: weekly.artworks.at(-1)!,   delta: weekly.artworks.at(-1)!   - weekly.artworks[0] },
+    { key: "creators",   label: "Total Creators",   color: green,  value: weekly.creators.at(-1)!,   delta: weekly.creators.at(-1)!   - weekly.creators[0] },
+    { key: "collectors", label: "Total Collectors", color: orange, value: weekly.collectors.at(-1)!, delta: weekly.collectors.at(-1)! - weekly.collectors[0] },
+  ];
 
   /** เตรียมซีรีส์กราฟ */
-  const series = useMemo(
-    () => [
-      { name: "Artworks", color: pink, data: weekly.artworks },
-      { name: "Creators", color: green, data: weekly.creators },
-      { name: "Collectors", color: orange, data: weekly.collectors },
-    ],
-    [weekly]
-  );
+  const series = [
+    { name: "Artworks",   color: pink,   data: weekly.artworks },
+    { name: "Creators",   color: green,  data: weekly.creators },
+    { name: "Collectors", color: orange, data: weekly.collectors },
+  ];
 
   // หา min/max เพื่อสเกลกราฟพอดี
   const { minVal, maxVal } = useMemo(() => {

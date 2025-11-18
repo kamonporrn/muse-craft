@@ -33,21 +33,15 @@ export default function CreatorArtworksPage() {
   const user = userId ? getUserById(userId) : null;
   const items = user ? listArtworksByCreator(user.name) : [];
 
-  if (!ok) {
-    return (
-      <div className="grid min-h-screen place-items-center bg-[#efe2fb]">
-        Checking permission…
-      </div>
-    );
-  }
+  if (!ok) return <div className="grid min-h-screen place-items-center bg-[#efe2fb]">Checking permission…</div>;
 
-  if (!user || user.role !== "Creator") {
+  if (!user || user.role !== "Collector") {
     return (
       <div className="min-h-screen bg-[#efe2fb]">
         <AdminNavbar userName={adminName} />
         <main className="mx-auto max-w-5xl px-4 py-6">
           <p className="rounded-xl bg-white p-6 ring-1 ring-purple-100 text-gray-700">
-            User not found or not a Creator.
+            User not found or not a Collector/Charity.
           </p>
           <Link
             href="/admin/users"

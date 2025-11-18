@@ -88,6 +88,9 @@ export default function AdminArtworksPage() {
   // ใช้ข้อมูลจาก lib/products.ts
   const [items, setItems] = useState<Item[]>(() => seedFromProducts(products));
 
+  // Track items that are fading out (used to hide them from the list)
+  const fadingOut = useMemo(() => new Set<string>(), []);
+
   /* ---------- Filters ---------- */
   const [q, setQ] = useState("");
   const [fCategory, setFCategory] = useState<"All" | Category>("All");
@@ -102,6 +105,9 @@ export default function AdminArtworksPage() {
 
   const filtered = useMemo(() => {
     return items.filter((it) => {
+      // Hide cards that are fading out
+      if (fadingOut.has(it.id)) return false;
+      
       if (fCategory !== "All" && it.category !== fCategory) return false;
       if (fStatus !== "All" && it.status !== fStatus) return false;
       if (fDate && it.createdAt !== fDate) return false;
