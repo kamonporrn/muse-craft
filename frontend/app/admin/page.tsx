@@ -86,19 +86,21 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!ok) return;
 
-    // 1) ensure Creator จาก products ถูกสร้างเป็น user role "Creator" แล้ว
-    ensureCreatorUsersFromProducts();
+    (async () => {
+      // 1) ensure Creator จาก products ถูกสร้างเป็น user role "Creator" แล้ว
+      ensureCreatorUsersFromProducts();
 
-    // 2) users จาก localStorage ผ่าน lib/users
-    const allUsers = getUsers();
-    const creators = allUsers.filter((u) => u.role === "Creator").length;
-    const collectors = allUsers.filter((u) => u.role === "Collector").length;
+      // 2) users จาก localStorage ผ่าน lib/users
+      const allUsers = getUsers();
+      const creators = allUsers.filter((u) => u.role === "Creator").length;
+      const collectors = allUsers.filter((u) => u.role === "Collector").length;
 
-    // 3) artworks จาก lib/products ผ่าน getProducts()
-    const allProducts = getProducts();
-    const artworks = allProducts.length;
+      // 3) artworks จาก lib/products ผ่าน getProducts()
+      const allProducts = await getProducts();
+      const artworks = allProducts.length;
 
-    setTotals({ artworks, creators, collectors });
+      setTotals({ artworks, creators, collectors });
+    })();
   }, [ok]);
 
   // weekly series ผูกกับ total จริง (ปลายสัปดาห์ = ค่าปัจจุบัน)

@@ -1,0 +1,25 @@
+[
+  {
+    "id": "o-10001",
+    "buyerId": "u3",
+    "items": [
+      {
+        "productId": "p1",
+        "name": "Ocean Whisper",
+        "price": 1499,
+        "qty": 1
+      },
+      {
+        "productId": "p2",
+        "name": "Neon Poster Set",
+        "price": 499,
+        "qty": 2
+      }
+    ],
+    "total": 2497,
+    "dateISO": "2025-11-12T12:56:56.708Z",
+    "status": "delivered",
+    "createdAt": "2025-11-12T12:56:56.708Z",
+    "updatedAt": "2025-11-12T12:56:56.708Z"
+  }
+]

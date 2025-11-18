@@ -2,31 +2,18 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { FaCalendarAlt, FaFileAlt } from "react-icons/fa";
+import { fetchCurrentUser, fetchOrdersByCreator, fetchProductById, type ApiUser, type ApiOrder, type ApiProduct } from "@/lib/api";
 
 type PeriodType = 'daily' | 'monthly' | 'yearly';
 
-// Generate finance data based on period type
-const generateFinanceData = (periodType: PeriodType, year: number, month: number, day?: number) => {
-  let baseValue = 3000;
-  
-  if (periodType === 'daily' && day) {
-    baseValue = 2000 + Math.sin((day / 31) * Math.PI * 2) * 1500;
-  } else if (periodType === 'monthly') {
-    baseValue = 3000 + Math.sin((month / 12) * Math.PI * 2) * 2000;
-  } else if (periodType === 'yearly') {
-    baseValue = 40000 + Math.sin((year % 10) * 0.5) * 15000;
-  }
-  
-  const variation = (Math.random() - 0.5) * 1000;
-  
-  return [
-    { name: "Painting", value: Math.max(1000, Math.round(baseValue + variation)), color: "#6366F1" },
-    { name: "Sculpture", value: Math.max(800, Math.round(baseValue * 0.8 + variation * 0.7)), color: "#EC4899" },
-    { name: "Literature (E-book)", value: Math.max(600, Math.round(baseValue * 0.6 + variation * 0.5)), color: "#10B981" },
-    { name: "Graphic Design", value: Math.max(500, Math.round(baseValue * 0.5 + variation * 0.4)), color: "#F59E0B" },
-    { name: "Crafts", value: Math.max(400, Math.round(baseValue * 0.4 + variation * 0.3)), color: "#8B5CF6" },
-    { name: "Digital Art", value: Math.max(300, Math.round(baseValue * 0.3 + variation * 0.2)), color: "#EF4444" },
-  ];
+// Category colors
+const categoryColors: Record<string, string> = {
+  "Painting": "#6366F1",
+  "Sculpture": "#EC4899",
+  "Literature (E-book)": "#10B981",
+  "Graphic Design": "#F59E0B",
+  "Crafts": "#8B5CF6",
+  "Digital Art": "#EF4444",
 };
 
 const monthNames = [
@@ -44,6 +31,102 @@ export default function FinancePage() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [calendarViewMonth, setCalendarViewMonth] = useState(new Date().getMonth() + 1);
   const [calendarViewYear, setCalendarViewYear] = useState(new Date().getFullYear());
+  
+  // Load orders and products
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [products, setProducts] = useState<Map<string, ApiProduct>>(new Map());
+  const [loading, setLoading] = useState(true);
+
+  // Load user and orders
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const userData = await fetchCurrentUser();
+        setUser(userData);
+        
+        if (userData) {
+          const ordersData = await fetchOrdersByCreator(userData.name);
+          setOrders(ordersData);
+          
+          // Load products for all order items - fetch all products at once for efficiency
+          const { fetchProducts } = await import("@/lib/api");
+          const allProducts = await fetchProducts();
+          const productMap = new Map<string, ApiProduct>();
+          allProducts.forEach(product => {
+            productMap.set(product.id, product);
+          });
+          setProducts(productMap);
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Check if selected date is in the future
+  const isDateInFuture = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (periodType === 'daily') {
+      const selectedDate = new Date(selectedYear, selectedMonth - 1, selectedDay);
+      selectedDate.setHours(0, 0, 0, 0);
+      return selectedDate > today;
+    } else if (periodType === 'monthly') {
+      // For monthly: check if the selected month is in the future
+      // If same year, check if month is after current month
+      // If different year, check if year is in the future
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth() + 1; // 1-12
+      
+      if (selectedYear > currentYear) {
+        return true; // Year is in the future
+      } else if (selectedYear === currentYear && selectedMonth > currentMonth) {
+        return true; // Month is in the future (same year)
+      }
+      return false;
+    } else if (periodType === 'yearly') {
+      // For yearly: check if the selected year is in the future
+      const currentYear = today.getFullYear();
+      return selectedYear > currentYear;
+    }
+    return false;
+  }, [periodType, selectedYear, selectedMonth, selectedDay]);
+
+  // Check if a specific day is in the future
+  const isDayInFuture = (year: number, month: number, day: number): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(year, month - 1, day);
+    checkDate.setHours(0, 0, 0, 0);
+    return checkDate > today;
+  };
+
+  // Check if a specific month is in the future
+  const isMonthInFuture = (year: number, month: number): boolean => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1; // 1-12
+    
+    if (year > currentYear) {
+      return true; // Year is in the future
+    } else if (year === currentYear && month > currentMonth) {
+      return true; // Month is in the future (same year)
+    }
+    return false;
+  };
+
+  // Check if a specific year is in the future
+  const isYearInFuture = (year: number): boolean => {
+    const today = new Date();
+    const todayYear = new Date(today.getFullYear(), 0, 1);
+    const checkDate = new Date(year, 0, 1);
+    return checkDate > todayYear;
+  };
 
   const handlePeriodChange = (newPeriod: PeriodType) => {
     if (newPeriod !== periodType) {
@@ -81,15 +164,53 @@ export default function FinancePage() {
     }
   }, [showDatePicker]);
 
+  // Calculate finance data from actual orders
   const data = useMemo(() => {
-    if (periodType === 'daily') {
-      return generateFinanceData('daily', selectedYear, selectedMonth, selectedDay);
-    } else if (periodType === 'monthly') {
-      return generateFinanceData('monthly', selectedYear, selectedMonth);
-    } else {
-      return generateFinanceData('yearly', selectedYear, selectedMonth);
-    }
-  }, [periodType, selectedYear, selectedMonth, selectedDay]);
+    // Only count completed orders (delivered or shipped)
+    const completedOrders = orders.filter(o => 
+      o && (o.status === "delivered" || o.status === "shipped")
+    );
+
+    // Filter orders by selected period
+    const filteredOrders = completedOrders.filter(order => {
+      if (!order.dateISO) return false;
+      const orderDate = new Date(order.dateISO);
+      
+      if (periodType === 'daily') {
+        return orderDate.getFullYear() === selectedYear &&
+               orderDate.getMonth() + 1 === selectedMonth &&
+               orderDate.getDate() === selectedDay;
+      } else if (periodType === 'monthly') {
+        return orderDate.getFullYear() === selectedYear &&
+               orderDate.getMonth() + 1 === selectedMonth;
+      } else if (periodType === 'yearly') {
+        return orderDate.getFullYear() === selectedYear;
+      }
+      return false;
+    });
+
+    // Calculate revenue by category
+    const categoryRevenue: Record<string, number> = {};
+    
+    filteredOrders.forEach(order => {
+      order.items.forEach(item => {
+        const product = products.get(item.productId);
+        if (product && product.category) {
+          const category = product.category;
+          const itemRevenue = (item.price || 0) * (item.qty || 1);
+          categoryRevenue[category] = (categoryRevenue[category] || 0) + itemRevenue;
+        }
+      });
+    });
+
+    // Convert to array format with all categories
+    const allCategories = ["Painting", "Sculpture", "Literature (E-book)", "Graphic Design", "Crafts", "Digital Art"];
+    return allCategories.map(category => ({
+      name: category,
+      value: categoryRevenue[category] || 0,
+      color: categoryColors[category] || "#6366F1",
+    }));
+  }, [orders, products, periodType, selectedYear, selectedMonth, selectedDay]);
 
   const totalRevenue = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
   const total = totalRevenue;
@@ -240,18 +361,24 @@ export default function FinancePage() {
                           for (let day = 1; day <= daysInMonth; day++) {
                             const isSelected = day === selectedDay && calendarViewMonth === selectedMonth && calendarViewYear === selectedYear;
                             const isToday = day === new Date().getDate() && calendarViewMonth === new Date().getMonth() + 1 && calendarViewYear === new Date().getFullYear();
+                            const isFuture = isDayInFuture(calendarViewYear, calendarViewMonth, day);
                             
                             days.push(
                               <button
                                 key={day}
                                 onClick={() => {
-                                  setSelectedDay(day);
-                                  setSelectedMonth(calendarViewMonth);
-                                  setSelectedYear(calendarViewYear);
-                                  setShowDatePicker(false);
+                                  if (!isFuture) {
+                                    setSelectedDay(day);
+                                    setSelectedMonth(calendarViewMonth);
+                                    setSelectedYear(calendarViewYear);
+                                    setShowDatePicker(false);
+                                  }
                                 }}
+                                disabled={isFuture}
                                 className={`h-8 w-8 rounded-md text-sm transition-colors ${
-                                  isSelected
+                                  isFuture
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                    : isSelected
                                     ? 'bg-purple-600 text-white font-semibold'
                                     : isToday
                                     ? 'bg-purple-100 text-purple-700 font-semibold'
@@ -276,15 +403,34 @@ export default function FinancePage() {
                         <select
                           value={selectedMonth}
                           onChange={(e) => {
-                            setSelectedMonth(Number(e.target.value));
-                            setShowDatePicker(false);
+                            const newMonth = Number(e.target.value);
+                            const newYear = selectedYear;
+                            if (!isMonthInFuture(newYear, newMonth)) {
+                              setSelectedMonth(newMonth);
+                              setShowDatePicker(false);
+                            } else {
+                              // If trying to select future month, reset to current month
+                              const today = new Date();
+                              setSelectedMonth(today.getMonth() + 1);
+                              setSelectedYear(today.getFullYear());
+                            }
                           }}
                           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                           aria-label="Select month"
                         >
-                          {monthNames.map((month, i) => (
-                            <option key={i + 1} value={i + 1}>{month}</option>
-                          ))}
+                          {monthNames.map((month, i) => {
+                            const monthNum = i + 1;
+                            const isFuture = isMonthInFuture(selectedYear, monthNum);
+                            return (
+                              <option 
+                                key={monthNum} 
+                                value={monthNum}
+                                disabled={isFuture}
+                              >
+                                {month} {isFuture ? '(Future)' : ''}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                       <div>
@@ -292,15 +438,31 @@ export default function FinancePage() {
                         <select
                           value={selectedYear}
                           onChange={(e) => {
-                            setSelectedYear(Number(e.target.value));
-                            setShowDatePicker(false);
+                            const newYear = Number(e.target.value);
+                            if (!isYearInFuture(newYear)) {
+                              setSelectedYear(newYear);
+                              setShowDatePicker(false);
+                            } else {
+                              // If trying to select future year, reset to current year
+                              const today = new Date();
+                              setSelectedYear(today.getFullYear());
+                            }
                           }}
                           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                           aria-label="Select year"
                         >
                           {[...Array(5)].map((_, i) => {
                             const year = new Date().getFullYear() - 2 + i;
-                            return <option key={year} value={year}>{year}</option>;
+                            const isFuture = isYearInFuture(year);
+                            return (
+                              <option 
+                                key={year} 
+                                value={year}
+                                disabled={isFuture}
+                              >
+                                {year} {isFuture ? '(Future)' : ''}
+                              </option>
+                            );
                           })}
                         </select>
                       </div>
@@ -313,15 +475,31 @@ export default function FinancePage() {
                       <select
                         value={selectedYear}
                         onChange={(e) => {
-                          setSelectedYear(Number(e.target.value));
-                          setShowDatePicker(false);
+                          const newYear = Number(e.target.value);
+                          if (!isYearInFuture(newYear)) {
+                            setSelectedYear(newYear);
+                            setShowDatePicker(false);
+                          } else {
+                            // If trying to select future year, reset to current year
+                            const today = new Date();
+                            setSelectedYear(today.getFullYear());
+                          }
                         }}
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                         aria-label="Select year"
                       >
                         {[...Array(5)].map((_, i) => {
                           const year = new Date().getFullYear() - 2 + i;
-                          return <option key={year} value={year}>{year}</option>;
+                          const isFuture = isYearInFuture(year);
+                          return (
+                            <option 
+                              key={year} 
+                              value={year}
+                              disabled={isFuture}
+                            >
+                              {year} {isFuture ? '(อนาคต)' : ''}
+                            </option>
+                          );
                         })}
                       </select>
                     </div>
@@ -335,6 +513,46 @@ export default function FinancePage() {
 
         {/* Chart Section */}
         <div className="mb-6">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="text-center text-gray-500">Loading finance data...</div>
+            </div>
+          ) : isDateInFuture ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="text-center">
+                <div className="mb-4">
+                  <FaCalendarAlt className="text-gray-400 text-5xl mx-auto" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  Future Date
+                </h3>
+                <p className="text-sm text-gray-600">
+                  You cannot view finance reports for future dates
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Please select a past date
+                </p>
+              </div>
+            </div>
+          ) : totalRevenue === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4">
+              <div className="text-center">
+                <div className="mb-4">
+                  <FaFileAlt className="text-gray-400 text-5xl mx-auto" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  No Revenue
+                </h3>
+                <p className="text-sm text-gray-600">
+                  No sales in the selected period
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  Revenue will appear when collectors purchase and pay for products
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
           <style jsx>{`
             @keyframes chartPop {
               0% {
@@ -438,7 +656,7 @@ export default function FinancePage() {
                         fontFamily: 'Arial, sans-serif'
                       }}
                     >
-                      {totalRevenue.toLocaleString()}
+                      {totalRevenue > 0 ? totalRevenue.toLocaleString() : '0'}
                     </text>
                     <text
                       x="21"
@@ -482,6 +700,8 @@ export default function FinancePage() {
             })}
             </div>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>

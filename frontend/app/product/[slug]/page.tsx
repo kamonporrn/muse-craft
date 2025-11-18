@@ -2,12 +2,13 @@
 "use client";
 
 import Image from "next/image";
-import { notFound, useParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { Star, CheckCircle2 } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/NavbarSignedIn";
-import { getProductBySlug, toSlug } from "@/lib/products";
+import { getProductBySlug, toSlug, type Product } from "@/lib/products";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
+import { isSignedIn } from "@/lib/auth";
 
 type CartItem = {
   slug: string;
@@ -19,12 +20,57 @@ type CartItem = {
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>();
+  const router = useRouter();
   const [search, setSearch] = useState("");
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const product = useMemo(() => getProductBySlug(slug as string), [slug]);
-  if (!product) return notFound();
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!isSignedIn()) {
+        router.push("/signin");
+        return;
+      }
+    }
+  }, [router]);
 
-  const { name, author, price, rating, img, category } = product;
+  useEffect(() => {
+    if (slug) {
+      getProductBySlug(slug as string).then((data) => {
+        setProduct(data);
+        setLoading(false);
+      }).catch((error) => {
+        console.error('Failed to load product:', error);
+        setLoading(false);
+      });
+    }
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-purple-100 text-gray-900 flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </main>
+    );
+  }
+
+  // If product not found, redirect to home
+  useEffect(() => {
+    if (!loading && !product) {
+      router.push("/");
+    }
+  }, [loading, product, router]);
+
+  if (!product) {
+    return (
+      <main className="min-h-screen bg-purple-100 text-gray-900 flex items-center justify-center">
+        <div className="text-xl">Redirecting...</div>
+      </main>
+    );
+  }
+
+  const { name, author, price, img, category } = product;
 
   const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState<null | string>(null);
@@ -81,14 +127,22 @@ export default function ProductPage() {
       <section className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 pb-16 md:grid-cols-[520px_1fr]">
         {/* Product image */}
         <div className="flex justify-center">
-          <Image
-            src={img}
-            alt={name}
-            width={520}
-            height={520}
-            priority
-            className="rounded-lg shadow object-cover"
-          />
+          {img && img.startsWith('data:') ? (
+            <img
+              src={img}
+              alt={name}
+              className="w-full max-w-[520px] h-auto rounded-lg shadow object-cover"
+            />
+          ) : (
+            <Image
+              src={img}
+              alt={name}
+              width={520}
+              height={520}
+              priority
+              className="rounded-lg shadow object-cover"
+            />
+          )}
         </div>
 
         {/* Right info */}
@@ -100,20 +154,6 @@ export default function ProductPage() {
             <dt className="font-semibold text-gray-700">Category</dt>
             <dd className="text-purple-700 font-semibold">{category}</dd>
 
-            <dt className="font-semibold mt-2">Ranking</dt>
-            <dd className="mt-1 flex items-center gap-2">
-              <div className="flex items-center gap-1 text-purple-600">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-5 h-5 ${
-                      i < rating ? "fill-purple-500 text-purple-500" : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-700">(20)</span>
-            </dd>
 
             <dt className="font-semibold mt-4 text-gray-700">Type</dt>
             <dd className="mt-4 text-gray-700">{category}</dd>

@@ -3,13 +3,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { Search, Eye } from "lucide-react";
+import { Search } from "lucide-react";
 import AdminNavbar from "@/components/AdminNavbar";
-import { getProducts, toSlug, Product } from "@/lib/products";
+import { products, toSlug, type Product } from "@/lib/products";
 
 /* ---------- Types ---------- */
 type Status = "Waiting for approval" | "Approved" | "Rejected";
+type ProdType = "Sell" | "Auction";
 type Category =
   | "Painting"
   | "Sculpture"
@@ -19,13 +19,13 @@ type Category =
   | "Digital Art";
 
 type Item = {
-  id: string;            // ใช้ slug เป็นไอดี
-  productSlug: string;   // อ้างกลับไปยัง lib/products
+  id: string;                 // ใช้ slug เป็นไอดี
+  productSlug: string;        // อ้างกลับไปยัง lib/products
   title: string;
   creator: string;
   category: Category;
   price: number;
-  createdAt: string;     // ISO (YYYY-MM-DD)
+  createdAt: string;          // ISO date
   status: Status;
   image: string;
   description?: string;
@@ -37,7 +37,10 @@ function recentISO(daysAgo: number) {
   d.setDate(d.getDate() - daysAgo);
   return d.toISOString().slice(0, 10); // YYYY-MM-DD
 }
-
+function pickProdType(p: Product, i: number): ProdType {
+  if (p.category === "Literature (E-book)" || p.category === "Graphic Design") return "Sell";
+  return i % 2 === 0 ? "Auction" : "Sell";
+}
 function seedFromProducts(ps: Product[]): Item[] {
   return ps.map((p, i) => {
     const slug = toSlug(p.name);
@@ -47,6 +50,7 @@ function seedFromProducts(ps: Product[]): Item[] {
       title: p.name,
       creator: p.author,
       category: p.category as Category,
+      prodType: pickProdType(p, i),
       price: p.price,
       createdAt: recentISO((i % 7) + 1),
       status: "Waiting for approval",
@@ -81,10 +85,8 @@ export default function AdminArtworksPage() {
     }
   }, []);
 
-  // ใช้ข้อมูลจาก lib/products.ts (ผ่าน getProducts)
-  const [items, setItems] = useState<Item[]>(() =>
-    seedFromProducts(getProducts())
-  );
+  // ใช้ข้อมูลจาก lib/products.ts
+  const [items, setItems] = useState<Item[]>(() => seedFromProducts(products));
 
   /* ---------- Filters ---------- */
   const [q, setQ] = useState("");
@@ -94,8 +96,8 @@ export default function AdminArtworksPage() {
 
   // ดึงหมวดหมู่จาก products จริง (ผ่าน getProducts)
   const categoryOptions = useMemo(() => {
-    const ps = getProducts();
-    return Array.from(new Set(ps.map((p) => p.category))) as Category[];
+    // unique categories จาก products
+    return Array.from(new Set(products.map((p) => p.category))) as Category[];
   }, []);
 
   const filtered = useMemo(() => {
@@ -112,18 +114,9 @@ export default function AdminArtworksPage() {
   }, [items, fCategory, fStatus, fDate, q]);
 
   const approve = (id: string) =>
-    setItems((arr) =>
-      arr.map((x) =>
-        x.id === id ? { ...x, status: "Approved" } : x
-      )
-    );
-
+    setItems((arr) => arr.map((x) => (x.id === id ? { ...x, status: "Approved" } : x)));
   const reject = (id: string) =>
-    setItems((arr) =>
-      arr.map((x) =>
-        x.id === id ? { ...x, status: "Rejected" } : x
-      )
-    );
+    setItems((arr) => arr.map((x) => (x.id === id ? { ...x, status: "Rejected" } : x)));
 
   if (!ok) {
     return (
@@ -152,6 +145,7 @@ export default function AdminArtworksPage() {
                 value={fCategory}
                 onChange={(e) => setFCategory(e.target.value as any)}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by category"
               >
                 <option>All</option>
                 {categoryOptions.map((c) => (
@@ -172,6 +166,7 @@ export default function AdminArtworksPage() {
                 value={fDate}
                 onChange={(e) => setFDate(e.target.value)}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by date"
               />
             </div>
 
@@ -184,6 +179,7 @@ export default function AdminArtworksPage() {
                 value={fStatus}
                 onChange={(e) => setFStatus(e.target.value as any)}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by status"
               >
                 <option>All</option>
                 <option>Waiting for approval</option>
@@ -213,10 +209,7 @@ export default function AdminArtworksPage() {
         {/* List */}
         <section className="mt-5 space-y-4">
           {filtered.map((it) => (
-            <article
-              key={it.id}
-              className="rounded-2xl bg-white p-4 ring-1 ring-purple-100 shadow-sm"
-            >
+            <article key={it.id} className="rounded-2xl bg-white p-4 ring-1 ring-purple-100 shadow-sm">
               <div className="grid grid-cols-[96px_1fr_auto] gap-4">
                 <div className="h-24 w-24 overflow-hidden rounded-xl ring-1 ring-black/5">
                   <Image
@@ -250,10 +243,7 @@ export default function AdminArtworksPage() {
                 </div>
 
                 <div className="flex flex-col items-end gap-2">
-                  <div className="text-sm text-gray-500">
-                    {fmtDate(it.createdAt)}
-                  </div>
-
+                  <div className="text-sm text-gray-500">{fmtDate(it.createdAt)}</div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => approve(it.id)}

@@ -4,11 +4,21 @@ import Link from "next/link";
 import Image from "next/image";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { isSignedIn } from "@/lib/auth";
 
 export default function EditProfilePage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
+
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!isSignedIn()) {
+        router.push("/signin");
+      }
+    }
+  }, [router]);
 
   // mock form state
   const [name, setName] = useState("");

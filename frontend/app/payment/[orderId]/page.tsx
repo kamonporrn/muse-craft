@@ -5,11 +5,21 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { Copy, Check, Download, Timer, Info, ArrowLeft } from "lucide-react";
+import { isSignedIn } from "@/lib/auth";
 
 export default function PaymentQRPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const sp = useSearchParams();
   const router = useRouter();
+
+  // Check if user is signed in - redirect to login if not
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!isSignedIn()) {
+        router.push("/signin");
+      }
+    }
+  }, [router]);
 
   // demo params (ส่งมาทาง query ได้ เช่น ?title=Ocean%27s%20Whisper&amount=1000)
   const title = sp.get("title") || "Ocean’s Whisper";

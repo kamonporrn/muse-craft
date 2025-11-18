@@ -15,19 +15,43 @@ export default function SignUpForm({
 }: Props) {
   const router = useRouter();
 
-  const [name, setName] = useState("Johnson Doe");
-  const [email, setEmail] = useState("johnsondoe@nomail.com");
-  const [password, setPassword] = useState("".padEnd(16, "*"));
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    // TODO: call your real sign-up API
-    await new Promise((r) => setTimeout(r, 900));
-    setLoading(false);
-    router.push(onSuccessRedirect); // 👉 ไปหน้า /signin
+
+    try {
+      // Import createUser function
+      const { createUser } = await import("@/lib/api");
+      
+      // Create user in database
+      const newUser = await createUser({
+        name: name.trim(),
+        email: email.trim(),
+        password: password,
+        role: "Collector", // Default role for new sign ups
+      });
+
+      if (!newUser) {
+        setError("Failed to create account. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Success - redirect to sign in
+      router.push(onSuccessRedirect);
+    } catch (err) {
+      console.error('Sign up error:', err);
+      setError(err instanceof Error ? err.message : "An error occurred. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -93,6 +117,13 @@ export default function SignUpForm({
             </button>
           </div>
         </label>
+
+        {/* Error Message */}
+        {error && (
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* Submit */}
         <button

@@ -16,14 +16,13 @@ import {
 import Navbar from "@/components/Navbar";
 import NavbarSignedIn from "@/components/NavbarSignedIn";
 import { useRouter } from "next/navigation";
-import { getProducts, toSlug, Product } from "@/lib/products";
-import { isSignedIn, getUserName } from "@/lib/users";
+import { getProducts, Product, products, toSlug } from "@/lib/products";
+import { isSignedIn, getUserName } from "@/lib/auth";
 
 export default function Home() {
   const router = useRouter();
 
   // ดึงสินค้าจาก lib/products (เชื่อมเป็นแหล่งเดียวกับ Admin)
-  const allProducts: Product[] = useMemo(() => getProducts(), []);
 
   // Search state (shared to Navbar / NavbarSignedIn)
   const [search, setSearch] = useState("");
@@ -32,31 +31,29 @@ export default function Home() {
   const [signed, setSigned] = useState(false);
   const [userName, setUserName] = useState("Muse User");
 
+  // Products state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     setSigned(isSignedIn());
     setUserName(getUserName());
+
+    // Fetch products from API
+    getProducts().then((data) => {
+      setProducts(data);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Failed to load products:', error);
+      setLoading(false);
+    });
   }, []);
 
-  /** ใช้สำหรับ guard ทุก action ที่ต้องการให้ Sign in ก่อน */
-  const requireSignIn = (e?: MouseEvent, next?: () => void) => {
-    if (!signed) {
-      if (e) e.preventDefault();
-      alert("กรุณา Sign in ก่อนเพื่อดูเนื้อหา");
-      router.push("/signin");
-      return;
-    }
-    next?.();
-  };
-
-  // Featured picks จาก products จริง
+  // Featured picks (ensure names match your data exactly)
   const featuredNames = ["Mystery Way", "The Changeling Worlds", "Ocean Whisper"];
-  const featured: Product[] = useMemo(
-    () =>
-      featuredNames
-        .map((name) => allProducts.find((p) => p.name === name))
-        .filter(Boolean) as Product[],
-    [allProducts]
-  );
+  const featured = featuredNames
+    .map((name) => products.find((p) => p.name === name))
+    .filter(Boolean) as typeof products;
 
   const [active, setActive] = useState(0);
 
@@ -70,15 +67,15 @@ export default function Home() {
     return () => clearInterval(id);
   }, [featured.length]);
 
-  // Best sellers (filter by search, sort by rating desc, tie-break price desc)
+  // Best sellers (filter by search, only approved products, sort by price desc)
   const bestSellers = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = allProducts.filter((p) =>
+    let list = products.filter((p) =>
       q ? p.name.toLowerCase().includes(q) || p.author.toLowerCase().includes(q) : true
     );
-    list = list.sort((a, b) => b.rating - a.rating || b.price - a.price);
-    return list.slice(0, 4);
-  }, [search, allProducts]);
+    list = list.sort((a, b) => ((b.rating ?? 0) - (a.rating ?? 0)) || (b.price - a.price));
+    return list.slice(0, 4); // show top 4
+  }, [search]);
 
   // Badge classes keyed by category TITLE
   const categoryBadge: Record<string, string> = {
@@ -153,18 +150,15 @@ export default function Home() {
               const opacity = diff === 0 ? 1 : 0.6;
               const zIndex = diff === 0 ? 30 : 20;
               const blur = diff === 0 ? "backdrop-blur-0" : "backdrop-blur-[1px]";
-              const slug = toSlug(item.name);
 
               return (
                 <motion.div
                   key={item.name}
-                  className={`absolute w-[85%] cursor-pointer md:w-[360px] ${blur}`}
+                  className={`absolute w-[85%] md:w-[360px] ${blur} cursor-pointer`}
                   animate={{ x, scale, opacity }}
                   transition={{ type: "spring", stiffness: 260, damping: 25 }}
                   style={{ zIndex }}
-                  onClick={(e) =>
-                    requireSignIn(e, () => router.push(`/product/${slug}`))
-                  }
+                  onClick={() => router.push(`/product/${toSlug(item.name)}`)}
                 >
                   <div className="rounded-2xl border border-purple-100 bg-purple-50 p-4 text-center shadow-sm">
                     <p className="mb-2 inline-block rounded-full bg-yellow-200 px-2 py-1 text-xs text-yellow-800 md:text-sm">
@@ -180,10 +174,11 @@ export default function Home() {
                     <h3 className="mt-4 text-lg font-semibold">{item.name}</h3>
                     <p className="text-sm text-gray-500">{item.author}</p>
                     <button
-                      className="mt-3 rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700"
-                      onClick={(e) =>
-                        requireSignIn(e, () => router.push(`/product/${slug}`))
-                      }
+                      className="mt-3 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/product/${toSlug(item.name)}`);
+                      }}
                     >
                       More Detail
                     </button>
@@ -258,10 +253,8 @@ export default function Home() {
               {categories.map(({ key, title, desc, Icon }) => (
                 <div
                   key={key}
-                  className="group flex cursor-pointer flex-col items-center rounded-xl bg-purple-50 p-6 transition hover:shadow-md"
-                  onClick={(e) =>
-                    requireSignIn(e, () => router.push(`/category/${key}`))
-                  }
+                  className="p-6 bg-purple-50 rounded-xl hover:shadow-md transition flex flex-col items-center group cursor-pointer"
+                  onClick={() => router.push(`/category/${key}`)}
                 >
                   <Icon className="mb-3 h-10 w-10 text-purple-600 transition-transform group-hover:scale-110" />
                   <h3 className="text-lg font-semibold">{title}</h3>
@@ -277,50 +270,39 @@ export default function Home() {
       <section className="px-8 py-10">
         <h2 className="mb-6 text-2xl font-bold">Best Seller</h2>
 
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-          {bestSellers.map((item) => {
-            const slug = toSlug(item.name);
-            return (
-              <Link
-                key={item.name}
-                href={`/product/${slug}`}
-                className="block overflow-hidden rounded-xl border shadow-sm transition hover:shadow-md"
-                onClick={(e) =>
-                  requireSignIn(e, () => router.push(`/product/${slug}`))
-                }
-              >
-                <div className="relative">
-                  <Image
-                    src={item.img}
-                    alt={item.name}
-                    width={300}
-                    height={200}
-                    className="h-48 w-full object-cover"
-                  />
-                  {/* Category badge on image */}
-                  <span
-                    className={`absolute left-3 top-3 rounded-full px-2 py-1 text-xs font-semibold ${
-                      categoryBadge[item.category] ??
-                      "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {item.category}
-                  </span>
-                </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {bestSellers.map((item) => (
+            <Link
+              key={item.name}
+              href={`/product/${toSlug(item.name)}`}
+              className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition block"
+            >
+              <div className="relative">
+                <Image
+                  src={item.img}
+                  alt={item.name}
+                  width={300}
+                  height={200}
+                  className="w-full h-48 object-cover"
+                />
+                {/* Category badge on image */}
+                <span
+                  className={`absolute left-3 top-3 text-xs font-semibold px-2 py-1 rounded-full
+                    ${categoryBadge[item.category] ?? "bg-gray-100 text-gray-800"}`}
+                >
+                  {item.category}
+                </span>
+              </div>
 
-                <div className="p-4">
-                  <h3 className="font-semibold">{item.name}</h3>
-                  <p className="text-gray-500">{item.author}</p>
-                  <p className="mt-2 font-semibold text-purple-600">
-                    {item.price.toLocaleString("en-US", {
-                      minimumFractionDigits: 2,
-                    })}{" "}
-                    ฿
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
+              <div className="p-4">
+                <h3 className="font-semibold">{item.name}</h3>
+                <p className="text-gray-500">{item.author}</p>
+                <p className="text-purple-600 font-semibold mt-2">
+                  {item.price.toLocaleString("en-US", { minimumFractionDigits: 2 })} ฿
+                </p>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
     </div>

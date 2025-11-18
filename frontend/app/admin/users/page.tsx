@@ -152,6 +152,7 @@ export default function AdminUsersPage() {
                   setFRole(e.target.value as RoleFilter);
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by role"
               >
                 <option value="All">All</option>
                 <option value="Creator">Creator</option>
@@ -172,6 +173,7 @@ export default function AdminUsersPage() {
                   setFStatus(e.target.value as any);
                 }}
                 className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-purple-400 focus:outline-none"
+                aria-label="Filter by status"
               >
                 <option value="All">All</option>
                 <option value="Normal">Normal</option>
