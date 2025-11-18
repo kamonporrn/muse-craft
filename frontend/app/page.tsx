@@ -163,13 +163,25 @@ export default function Home() {
                     <p className="mb-2 inline-block rounded-full bg-yellow-200 px-2 py-1 text-xs text-yellow-800 md:text-sm">
                       {item.category}
                     </p>
-                    <Image
-                      src={item.img}
-                      alt={item.name}
-                      width={360}
-                      height={220}
-                      className="mx-auto h-[200px] w-full rounded-lg object-cover md:h-[220px]"
-                    />
+                    {item.img && item.img.startsWith('data:') ? (
+                      <img
+                        src={item.img}
+                        alt={item.name}
+                        className="mx-auto h-[200px] w-full rounded-lg object-cover md:h-[220px]"
+                      />
+                    ) : (
+                      <Image
+                        src={item.img || '/img/products/placeholder.jpg'}
+                        alt={item.name}
+                        width={360}
+                        height={220}
+                        className="mx-auto h-[200px] w-full rounded-lg object-cover md:h-[220px]"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          e.currentTarget.src = '/img/products/placeholder.jpg';
+                        }}
+                      />
+                    )}
                     <h3 className="mt-4 text-lg font-semibold">{item.name}</h3>
                     <p className="text-sm text-gray-500">{item.author}</p>
                     <button
@@ -277,13 +289,25 @@ export default function Home() {
               className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition block"
             >
               <div className="relative">
-                <Image
-                  src={item.img}
-                  alt={item.name}
-                  width={300}
-                  height={200}
-                  className="w-full h-48 object-cover"
-                />
+                {item.img && item.img.startsWith('data:') ? (
+                  <img
+                    src={item.img}
+                    alt={item.name}
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={item.img || '/img/products/placeholder.jpg'}
+                    alt={item.name}
+                    width={300}
+                    height={200}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      // Fallback to placeholder if image fails to load
+                      e.currentTarget.src = '/img/products/placeholder.jpg';
+                    }}
+                  />
+                )}
                 {/* Category badge on image */}
                 <span
                   className={`absolute left-3 top-3 text-xs font-semibold px-2 py-1 rounded-full

@@ -25,7 +25,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Clara Everwood",
     price: 1499,
     rating: 5,
-    img: "/img/painting1.jpg",
+    img: "/img/Painting1.jpg",
     category: "Painting",
   },
   {
@@ -34,7 +34,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Adrian Blake",
     price: 1799,
     rating: 4,
-    img: "/img/painting2.jpg",
+    img: "/img/Painting2.jpg",
     category: "Painting",
   },
   {
@@ -43,7 +43,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Maya Thorne",
     price: 1599,
     rating: 5,
-    img: "/img/painting3.jpg",
+    img: "/img/Painting3.jpg",
     category: "Painting",
   },
   {
@@ -52,7 +52,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Leo Hart",
     price: 1399,
     rating: 4,
-    img: "/img/painting4.jpg",
+    img: "/img/Painting4.jpg",
     category: "Painting",
   },
   {
@@ -61,7 +61,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Nora Vale",
     price: 1699,
     rating: 5,
-    img: "/img/painting5.jpg",
+    img: "/img/Painting5.jpg",
     category: "Painting",
   },
   {
@@ -70,7 +70,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Iris Morrow",
     price: 1899,
     rating: 5,
-    img: "/img/painting6.jpg",
+    img: "/img/Painting6.jpg",
     category: "Painting",
   },
 
@@ -193,7 +193,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Karn Visual",
     price: 499,
     rating: 5,
-    img: "/img/graphic1.jpg",
+    img: "/img/Graphic1.jpg",
     category: "Graphic Design",
   },
   {
@@ -202,7 +202,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Luca Reed",
     price: 699,
     rating: 4,
-    img: "/img/graphic2.jpg",
+    img: "/img/Graphic2.jpg",
     category: "Graphic Design",
   },
   {
@@ -211,7 +211,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Juno Ray",
     price: 399,
     rating: 4,
-    img: "/img/graphic3.jpg",
+    img: "/img/Graphic3.jpg",
     category: "Graphic Design",
   },
   {
@@ -220,7 +220,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Eli Park",
     price: 459,
     rating: 5,
-    img: "/img/graphic4.jpg",
+    img: "/img/Graphic4.jpg",
     category: "Graphic Design",
   },
   {
@@ -229,7 +229,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Mia Vale",
     price: 289,
     rating: 4,
-    img: "/img/graphic5.jpg",
+    img: "/img/Graphic5.jpg",
     category: "Graphic Design",
   },
   {
@@ -238,7 +238,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Noah Grey",
     price: 349,
     rating: 5,
-    img: "/img/graphic6.jpg",
+    img: "/img/Graphic6.jpg",
     category: "Graphic Design",
   },
 
@@ -249,7 +249,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Aria Moonfall",
     price: 1699,
     rating: 5,
-    img: "/img/crafts1.jpg",
+    img: "/img/Painting1.jpg", // Using placeholder until crafts images are added
     category: "Crafts",
   },
   {
@@ -258,7 +258,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Kenneth Bulmer",
     price: 899,
     rating: 4,
-    img: "/img/crafts2.jpg",
+    img: "/img/Painting2.jpg", // Using placeholder until crafts images are added
     category: "Crafts",
   },
   {
@@ -267,7 +267,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Kael Ashborne",
     price: 1899,
     rating: 5,
-    img: "/img/crafts3.jpg",
+    img: "/img/Painting3.jpg", // Using placeholder until crafts images are added
     category: "Crafts",
   },
   {
@@ -276,7 +276,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Nyra Solstice",
     price: 1299,
     rating: 4,
-    img: "/img/crafts4.jpg",
+    img: "/img/Painting4.jpg", // Using placeholder until crafts images are added
     category: "Crafts",
   },
   {
@@ -285,7 +285,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Nara Weave",
     price: 799,
     rating: 4,
-    img: "/img/crafts5.jpg",
+    img: "/img/Painting5.jpg", // Using placeholder until crafts images are added
     category: "Crafts",
   },
   {
@@ -294,7 +294,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Tida Craft",
     price: 1199,
     rating: 5,
-    img: "/img/crafts6.jpg",
+    img: "/img/Painting6.jpg", // Using placeholder until crafts images are added
     category: "Crafts",
   },
 
@@ -305,7 +305,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Arwang",
     price: 899,
     rating: 5,
-    img: "/img/digital1.jpg",
+    img: "/img/Digital1.jpg",
     category: "Digital Art",
   },
   {
@@ -314,7 +314,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Kai Vector",
     price: 599,
     rating: 4,
-    img: "/img/digital2.jpg",
+    img: "/img/Digital2.jpg",
     category: "Digital Art",
   },
   {
@@ -323,7 +323,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Rin Nova",
     price: 649,
     rating: 5,
-    img: "/img/digital3.jpg",
+    img: "/img/Digital3.jpg",
     category: "Digital Art",
   },
   {
@@ -332,7 +332,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Dax Orbit",
     price: 549,
     rating: 4,
-    img: "/img/digital4.jpg",
+    img: "/img/Digital4.jpg",
     category: "Digital Art",
   },
   {
@@ -341,7 +341,7 @@ export const SEED_PRODUCTS: Product[] = [
     author: "Vee Prism",
     price: 729,
     rating: 5,
-    img: "/img/digital5.jpg",
+    img: "/img/Digital5.jpg",
     category: "Digital Art",
   },
   {
